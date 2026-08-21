@@ -26,9 +26,9 @@ cd ~/src/batya-production
 
 **opencode:**
 ```bash
-ln -s "$PWD/agents/batya.md"       ~/.config/opencode/agent/batya.md
-ln -s "$PWD/skills/batya-planner"  ~/.config/opencode/skill/batya-planner
-ln -s "$PWD/skills/batya-reviewer" ~/.config/opencode/skill/batya-reviewer
+ln -s "$PWD/agents/batya.md"       ~/.config/opencode/agents/batya.md
+ln -s "$PWD/skills/batya-planner"  ~/.config/opencode/skills/batya-planner
+ln -s "$PWD/skills/batya-reviewer" ~/.config/opencode/skills/batya-reviewer
 ```
 
 **Claude Code**, globally:
