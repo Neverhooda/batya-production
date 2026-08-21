@@ -38,15 +38,43 @@ ln -s "$PWD/skills/batya-planner"  ~/.claude/skills/batya-planner
 ln -s "$PWD/skills/batya-reviewer" ~/.claude/skills/batya-reviewer
 ```
 
-**Claude Code**, one project only — run from that project's root:
+**One project only** — run from that project's root. Claude Code reads `.claude/`,
+opencode reads `.opencode/`; the layout is the same in both:
 ```bash
-mkdir -p .claude/skills .claude/agents
+mkdir -p .claude/skills .claude/agents          # or .opencode/{skills,agents}
 ln -s ~/src/batya-production/skills/batya-planner  .claude/skills/batya-planner
 ln -s ~/src/batya-production/skills/batya-reviewer .claude/skills/batya-reviewer
 ln -s ~/src/batya-production/agents/batya.md       .claude/agents/batya.md
 ```
 
 Run `/agents` and `/skills` to confirm batya showed up.
+
+## Calling him
+
+The skills work the same in both tools — `/batya-planner`, `/batya-reviewer`, or
+just describe the job and let the agent pick one. The agent is where the two
+differ, because they disagree about what an agent file is.
+
+**Claude Code** treats `~/.claude/agents/*.md` as subagents. There is no way to
+change the persona of a session already running, so batya is chosen at startup:
+
+```bash
+claude --agent batya
+```
+
+Without the flag he is still available as a subagent — mention him and he takes
+that one task in his own context, while the rest of the session stays polite.
+
+**opencode** treats him as a primary agent, which is what `mode: primary` in the
+frontmatter selects. Press **Tab** to cycle primary agents mid-session, or make
+him the default in `~/.config/opencode/opencode.json`:
+
+```json
+{ "default_agent": "batya" }
+```
+
+That `mode:` key means nothing to Claude Code, which ignores frontmatter it does
+not recognise. One file, both tools, no separate copies.
 
 ## The personas
 
