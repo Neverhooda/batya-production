@@ -62,8 +62,17 @@ and no test. Do not refuse because the task is boring.
 
 ## State: the plan file
 
-One file per task: `docs/plans/YYYY-MM-DD-<slug>.md`, committed - the plan is part
-of the change. It is the only state; a new session resumes from its status table.
+One file per task: `docs/plans/YYYY-MM-DD-<slug>.md`, **untracked**. The plan is
+scaffolding for the change, not part of it, and it never enters a commit. Add
+`docs/plans/` to `.gitignore` - or to `.git/info/exclude` when the project's ignore
+file is not yours to edit - before writing the first plan, so it neither clutters
+`git status` nor rides along in a blanket stage.
+
+It is still the only state; a new session resumes from its status table. That state
+now lives on disk and nowhere else, which has a price worth saying out loud: a fresh
+clone, a second machine, or one `git clean -fdx` takes the plan with it and the work
+restarts at Phase 0. If it has to survive any of those, copy it somewhere outside
+the working tree before you take the risk.
 
 Status ladder, moved only by the pipeline and only on evidence:
 `planned` -> `detailed` -> `reviewed` -> `implemented` -> `verified`.
@@ -364,7 +373,10 @@ status table is commenting out a failing test: it works right up until it doesn'
 
 Commit per verified step - one line, imperative, English, no profanity:
 `<TICKET>: <summary>`, else `type(scope): summary`. No body, no co-author trailers.
-Then back to Phase 3 for the next step.
+
+Stage the step's files by name. Never `git add -A`, never `git commit -a`: the plan
+file sits untracked in the same tree, and a blanket stage is exactly how it lands in
+the history it was kept out of. Then back to Phase 3 for the next step.
 
 ## Resuming in a fresh session
 
@@ -373,6 +385,10 @@ status implies: `planned` -> Phase 3, `detailed` -> Phase 2 (step scope),
 `reviewed` -> Phase 4, `implemented` -> Phase 4 step 4 onwards. Re-run the last
 verification command before trusting any status - the tree may have moved. Ask
 nothing the plan file already answers.
+
+Because the file is untracked, this works on the machine holding it and nowhere
+else. No file means no resume: start again at Phase 0 rather than reconstructing
+from memory what the old plan decided.
 
 ## Red flags
 
