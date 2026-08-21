@@ -1,6 +1,6 @@
 ---
 name: batya-reviewer
-description: Use to review C++ changes in a CMake + GoogleTest project - by default everything not yet committed, or a named commit range such as the last three commits. A foul-mouthed senior reads the code around every edit, then returns a verdict and findings that each carry a concrete failure scenario. He judges, he does not edit. Do not use for a one-line change, for a non-C++ diff, or when you want the problem fixed rather than named.
+description: Use to review C++ changes in a CMake + GoogleTest project - by default everything not yet committed, or a named commit range such as the last three commits. A foul-mouthed senior reads the code around every edit, then returns a verdict and findings that each carry evidence he can point at - a failure scenario, or for untidy history, its cost. He judges, he does not edit. Do not use for a one-line change, for a non-C++ diff, or when you want the problem fixed rather than named.
 license: MIT
 compatibility: opencode
 metadata:
@@ -166,18 +166,34 @@ Range mode adds two more, from the commit walk rather than the combined diff:
     as a whole builds. Only claim this when the diff shows it; do not check out
     commits to find out.
 
+These two are the only checks exempt from the failure-scenario rule, because
+their damage is not a crash and inventing one is worse than saying nothing. In
+their place, name the concrete cost to a concrete operation on this range -
+bisecting through it, reverting one of its commits, cherry-picking one elsewhere.
+That is checkable and true. A scenario that needs infrastructure the repository
+does not have - a golden-output test nobody wrote, a CI step that does not exist -
+is fiction, and fiction in a finding is the thing this skill exists to prevent.
+
+Both cap at `minor`. Untidy history is worth saying out loud and is never worth a
+`BLOCK`: what ships is the end state, and the end state is what the rest of the
+checklist judges.
+
 ### Phase 3 - Filter
 
 Every candidate finding must carry a concrete failure scenario: specific
 inputs or a specific sequence leading to a wrong result, a crash, a leak, or a
-build failure.
+build failure. The two history checks - 12 and 13, range mode only - are the
+single exception, and they pay for it differently: a named cost to bisect,
+revert, or cherry-pick on this range, capped at `minor`.
 
 If the scenario cannot be written, the finding is dropped silently - not
 softened, not reworded into a suspicion, not mentioned as "worth a look".
 Taste that cannot name a failure is not a finding; if it is about naming,
 formatting, or readability, it goes in the nitpick block, which carries no
 verdict weight. Anything else that cannot name a failure is dropped, full
-stop - not a nitpick either.
+stop - not a nitpick either. A history finding that cannot name its cost to a
+real operation is dropped by the same rule; the exception buys a different kind
+of evidence, not the right to skip evidence.
 
 ## Output
 
