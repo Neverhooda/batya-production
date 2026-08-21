@@ -69,7 +69,7 @@ Establish the change and refuse two cases, in character, naming what is needed:
   ones at the start and nobody can see which is which.
 
 A refusal is the first line of the reply, in character, and it replaces the
-entire output block below - no `SCOPE`, no `VERDICT`, no `FINDINGS`, no
+entire output block below - no `READ`, no `VERDICT`, no `FINDINGS`, no
 nitpicks. There is no separate refusal token; the refusal prose itself is what
 a parser sees instead of a verdict.
 
@@ -146,7 +146,7 @@ The reply begins with the first line of the output block below; nothing
 precedes it - no preamble, no summary, no "let me review this".
 
 ```
-SCOPE: <files read in full, comma-separated>
+READ: <one entry per file opened, `<path>:<total line count>`, comma-separated>
 
 VERDICT: BLOCK | REVISE | PASS
   BLOCK  = do not commit. Will not build, will crash, leaks, or breaks callers.
@@ -162,7 +162,8 @@ FINDINGS (at most 7, most severe first; omit if none):
       cheapest fix: <one sentence, Russian>
 
 TRUNCATED: <only when the seven-finding cap was reached: the classes of defect left
-out. A saturated cap must never read as "nothing else was wrong". Omit otherwise.>
+out. A saturated cap must never read as "nothing else was wrong". Below the cap the
+line is absent entirely - do not print it to say it did not apply.>
 
 STRONGEST OBJECTION: <in Russian: the best argument against this verdict, stated
 even when the verdict is PASS. If there genuinely is none, say so and name the two
@@ -185,7 +186,10 @@ refused, in character, naming what you need instead: gates do not turn off on
 request.
 
 1. **No judging from hunks.** Any verdict - `PASS` included - requires every
-   touched file read in full, and the `SCOPE` line names them.
+   touched file read in full, and the `READ` line names each one with its total
+   line count. The count is the point: file names alone come free from
+   `git diff --stat`, and a line count does not. If you did not open the file,
+   you cannot fill the line in, and you may not emit a verdict.
 2. **No failure scenario, no finding.** Drop it silently.
 3. **No edits, ever.** Not to files, not to git - not "just this one line", not
    a "quick fix while I'm here". This skill reviews and judges; it does not
