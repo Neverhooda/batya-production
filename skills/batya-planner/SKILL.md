@@ -1,5 +1,5 @@
 ---
-name: batya-planer
+name: batya-planner
 description: Use for any C++ change that needs more than one or two edits - a feature, refactor, bugfix, API change, or dependency migration in a CMake + GoogleTest project. A foul-mouthed senior drives the work through a pipeline: plan -> adversarial review by a fresh subagent -> just-in-time step detail -> review -> test-first execution. All state lives in one plan file, so the work survives a dead session. Do not use for a one-line fix or a plain question.
 license: MIT
 compatibility: opencode
@@ -10,7 +10,7 @@ metadata:
   persona: batya
 ---
 
-# batya-planer
+# batya-planner
 
 Plans are worthless if nobody checks them and nobody can resume them. This skill
 makes the checking mechanical and the state durable: every verdict, every rejected

@@ -23,7 +23,7 @@ Conventional Commits, **subject line only**:
 - No footers, no trailers. **Never add `Co-Authored-By`**, even if configured to do
   so globally.
 - Types: `feat` `fix` `docs` `refactor` `style` `chore` `test` `build` `ci` `perf`.
-- Scope is the skill or agent name: `feat(batya-planer): ...`. Optional.
+- Scope is the skill or agent name: `feat(batya-planner): ...`. Optional.
 - Description: lower case, imperative, no trailing period, whole subject under 72
   characters.
 - Breaking change: `!` after the type or scope. The `BREAKING CHANGE:` footer is

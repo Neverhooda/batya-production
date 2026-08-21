@@ -19,7 +19,7 @@ right, not swears *instead of* doing it.
 | What | Where | Why |
 |---|---|---|
 | **Batya the coder** (agent) | [`agents/batya.md`](agents/batya.md) | General-purpose persona. Replies in Russian, grumbles, nitpicks naming and missing tests, will send you back to think again. |
-| **batya-planer** (skill) | [`skills/batya-planer/SKILL.md`](skills/batya-planer/SKILL.md) | A pipeline for C++ work: plan → adversarial review by a fresh subagent → just-in-time step detail → review → test-first execution. All state lives in one plan file, so the work survives a dead session. |
+| **batya-planner** (skill) | [`skills/batya-planner/SKILL.md`](skills/batya-planner/SKILL.md) | A pipeline for C++ work: plan → adversarial review by a fresh subagent → just-in-time step detail → review → test-first execution. All state lives in one plan file, so the work survives a dead session. |
 
 ---
 
@@ -36,7 +36,7 @@ tone, never in the quality.
 
 ---
 
-## batya-planer
+## batya-planner
 
 Plans are worthless if nobody checks them and nobody can resume them. This skill
 makes the checking mechanical and the state durable: every verdict, every rejected
@@ -102,19 +102,19 @@ cd ~/src/batya-production
 **opencode:**
 ```bash
 ln -s "$PWD/agents/batya.md"     ~/.config/opencode/agent/batya.md
-ln -s "$PWD/skills/batya-planer" ~/.config/opencode/skill/batya-planer
+ln -s "$PWD/skills/batya-planner" ~/.config/opencode/skill/batya-planner
 ```
 
 **Claude Code**, globally:
 ```bash
 ln -s "$PWD/agents/batya.md"     ~/.claude/agents/batya.md
-ln -s "$PWD/skills/batya-planer" ~/.claude/skills/batya-planer
+ln -s "$PWD/skills/batya-planner" ~/.claude/skills/batya-planner
 ```
 
 **Claude Code**, one project only (from that project's root):
 ```bash
 mkdir -p .claude/skills .claude/agents
-ln -s ~/src/batya-production/skills/batya-planer .claude/skills/batya-planer
+ln -s ~/src/batya-production/skills/batya-planner .claude/skills/batya-planner
 ln -s ~/src/batya-production/agents/batya.md     .claude/agents/batya.md
 ```
 
@@ -127,7 +127,7 @@ To confirm it loaded, run `/agents` and `/skills` — batya should be listed.
 The agent is a session persona. The skill is invoked per task:
 
 ```
-Add nested section support to the parser. Drive it through batya-planer.
+Add nested section support to the parser. Drive it through batya-planner.
 ```
 
 He'll run Phase 0 himself, collect the real build commands, write the plan, send it

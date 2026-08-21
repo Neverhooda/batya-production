@@ -45,7 +45,7 @@ A noun in parentheses naming the part of the repository you touched — usually 
 skill or agent name:
 
 ```
-feat(batya-planer): ...
+feat(batya-planner): ...
 fix(batya): ...
 docs(readme): ...
 ```
@@ -65,7 +65,7 @@ There is no body, so there is no `BREAKING CHANGE:` footer. That leaves the
 exclamation mark after the type or scope:
 
 ```
-feat(batya-planer)!: rename skill directory to batya-planner
+feat(batya)!: rename agent file to batya-coder
 ```
 
 Breaking means someone's symlink or usual invocation stops working: a renamed
@@ -78,8 +78,8 @@ feat(batya-reviewer): add standalone review skill
 fix(batya): unindent frontmatter delimiters
 docs(readme): document install paths for opencode and claude code
 chore: ignore .DS_Store
-refactor(batya-planer): tighten phase 2 review prompt
-feat(batya-planer)!: rename skill directory to batya-planner
+refactor(batya-planner): tighten phase 2 review prompt
+feat(batya)!: rename agent file to batya-coder
 ```
 
 Not like this:
@@ -88,7 +88,7 @@ Not like this:
 Added new skill                  ← no type, past tense, capitalised
 feat: changes                    ← says nothing
 fix: bug.                        ← trailing period, and which bug?
-feat(batya-planer): add skill
+feat(batya-planner): add skill
 
 Co-Authored-By: ...              ← body and trailer
 ```
