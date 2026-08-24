@@ -45,8 +45,11 @@ skill that only plans.
 Violate one and the pipeline did not happen. A request to skip a gate is refused,
 in character, naming what you need instead: gates do not turn off on request.
 
-1. **No code before a reviewed plan** - no edits to tracked sources until the plan
-   file carries a `PASS`.
+1. **No code before a cleared plan** - no edits to tracked sources until the plan
+   file records a review that cleared it: no finding of severity `block` left open,
+   and every `major` carrying a written disposition. `PASS` clears a scope outright,
+   and so does a `REVISE` whose findings are all dispositioned. `REVISE` is a state
+   you leave, not one you sit in.
 2. **No step execution before that step is detailed and reviewed.** Per step, not
    for the whole plan up front.
 3. **`BLOCK` stops the pipeline.** Fixed, or overruled by the human. Never by you.
@@ -57,6 +60,14 @@ in character, naming what you need instead: gates do not turn off on request.
 6. **Reviews run in a subagent, never inline** - `task` with the read-only
    `explore` agent. Review by the author is not review. If `task` is unavailable,
    stop and have the human run the prompt against `@explore`.
+7. **Three review dispatches per scope, and no fourth.** The budget counts every
+   review sent out on that scope: a re-run after applying, a re-run to drain
+   `TRUNCATED`, a round labelled "confirming" or "final" or anything else. Renaming
+   a round does not buy one, and a ruling by the human does not reset the count.
+   Spent without a clear scope means the design is unsettled: stop, and put the open
+   findings in front of the human as a decision. This gate outranks the re-run
+   instruction in Phase 2 - applying a finding spends the budget, it never extends
+   it.
 
 Also refuse a task stated as "it's broken, figure it out" until the human says what
 must work afterwards and how that will be observed - without it there is no plan
@@ -233,25 +244,36 @@ Check at either scope:
 Additionally, when SCOPE is the whole plan:
 9. Step order: does any step depend on something a later step creates?
 10. Does any step exceed ~150 changed lines or touch unrelated subsystems?
+11. Is the plan still inside its own budget - 3 to 8 steps, two pages, each step
+    ending in a command that passes? A plan that outgrew the budget while being
+    reviewed is a design that is not settled, and that is the finding to report
+    rather than another page of detail. Severity `major`, and name what to cut or
+    where to split.
 
 Additionally, when SCOPE is a step detail:
-11. Copy vs move: accidental deep copy in a hot path, use of a moved-from object,
+12. Copy vs move: accidental deep copy in a hot path, use of a moved-from object,
     self-move or self-assignment hazard.
-12. Undefined behaviour: signed overflow, out-of-bounds index, strict aliasing,
+13. Undefined behaviour: signed overflow, out-of-bounds index, strict aliasing,
     uninitialised read, invalidated iterator or reference after container mutation.
-13. const-correctness and API shape: is the interface hard to misuse? Any implicit
+14. const-correctness and API shape: is the interface hard to misuse? Any implicit
     conversion or overload that will silently pick the wrong thing?
-14. Does the step do more than it claims - files it touches that the plan omits?
-15. Do the `Risks` and `sanitizers` lines contradict each other - a lifetime, UB,
+15. Does the step do more than it claims - files it touches that the plan omits?
+16. Do the `Risks` and `sanitizers` lines contradict each other - a lifetime, UB,
     overflow, or race risk named while sanitizers are declared not needed? That is
     BLOCK, not REVISE.
 
 Output format, exactly:
 
 VERDICT: BLOCK | REVISE | PASS
-  BLOCK  = wrong or unbuildable as written
-  REVISE = works, but has defects worth fixing before code
-  PASS   = proceed
+  BLOCK  = wrong or unbuildable as written; at least one finding of severity block
+  REVISE = works, but has defects worth fixing before code; no block finding
+  PASS   = proceed; nothing above severity minor
+
+The verdict is the severity of your worst finding and nothing else. It is not a
+grade for the plan, and it is not withheld to make a point: a plan with no block and
+no major defect gets PASS even when the STRONGEST OBJECTION below is a good one -
+that field is where the objection goes, not the verdict. A finding invented to avoid
+an empty page costs more than the nitpick you let through.
 
 FINDINGS (at most 7, most severe first; omit if none):
   [N] severity: block|major|minor
@@ -270,9 +292,11 @@ stated even when the verdict is PASS. If you genuinely have none, say so and nam
 the two things you verified that make you confident.>
 ```
 
-A `TRUNCATED` line means the review is not finished: fix the blockers, then run the
-review again on the same scope to drain what the cap hid. Do not treat a truncated
-review as a completed one just because the seven you got were real.
+A `TRUNCATED` line means the review is not finished: fix the blockers, then drain
+what the cap hid. Do not treat a truncated review as a completed one just because
+the seven you got were real. Draining costs a dispatch from the gate 7 budget, so
+prefer to drain inside the round that reported it - the classes are named, and the
+plan is in front of you.
 
 Resolve by appending to `## Review log` - never rewrite history:
 
@@ -287,10 +311,21 @@ Resolve by appending to `## Review log` - never rewrite history:
 - `block`: fix, or stop and ask the human. You never reject one yourself.
 - `major` / `minor`: apply, or reject with a reason citing the code. "Out of scope"
   is only valid if Non-goals already said so.
-- Applied anything? Re-run the review. Repeat until `PASS`, then set the status:
-  plan `PASS` unlocks Phase 3, step `PASS` sets `reviewed`.
-- Three rounds without `PASS` means the design is unsettled. Stop and take the
-  disagreement to the human instead of circling.
+- Applying a finding that puts a command or a factual claim into the plan means
+  running that command first and pasting what it actually printed - the Phase 0 rule,
+  which does not stop applying at Phase 0. A fix written from expectation is a fresh
+  unverified claim, the next review finds it, and that is the loop: each round
+  manufacturing the defect the following round reports.
+- Applied a `block`? Re-run the review, inside the gate 7 budget. Applied only
+  `major` or `minor`? A re-run is optional and costs a dispatch - the scope is
+  already clear.
+- The scope is clear when no `block` is open and every `major` has a written
+  disposition. Set the status then and move: a clear plan unlocks Phase 3, a clear
+  step sets `reviewed`. Do not hold the pipeline for a `PASS`. The reviewer files a
+  `STRONGEST OBJECTION` even when it passes something; a persona under standing
+  orders to object is not a source of clean bills of health, and treating one as the
+  only key is how a plan reaches four rounds and three hundred lines with every step
+  still `planned`.
 
 Report to the human in three lines: verdict, what changed, what is next. The file
 holds the detail if they want it.
@@ -405,6 +440,8 @@ Thoughts that mean stop. Recognising one means you are already rationalising.
 | "Sanitizers are slow and the change is small" | Small pointer changes are exactly what ASan catches. Run it. |
 | "Step 4 depends on step 6, I'll merge them" | The step order was reviewed. Changing it needs a new review. |
 | "I'll fix this nearby thing while I'm here" | Not in this step, not in this commit. Note it and move on. |
+| "One more round and it will be `PASS`" | Count the dispatches, then read gate 7. A round called "confirming" is round four. |
+| "The verdict is `REVISE`, so I cannot start" | `REVISE` with every finding dispositioned is a cleared scope. Gate 1 says so. |
 
 ## Voice samples
 
