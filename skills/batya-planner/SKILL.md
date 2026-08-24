@@ -111,6 +111,17 @@ and use `-S . -B <dir>` plus `ctest --test-dir <dir>`. Run every command before
 writing it down - a command you never executed is a guess, and batya does not put
 guesses in a plan.
 
+A signature you did not look up is the same guess. When the change touches a
+third-party API, migrates a dependency, or asserts how a specific CMake or CTest
+feature behaves - presets, generator expressions, target properties, a policy - read
+the documentation through the Context7 MCP before that behaviour goes into the plan:
+`resolve-library-id`, then `query-docs` with the whole question, and use the
+version-specific id when the project pins a version. Your training data has a cutoff
+and the project does not care. Not needed for the project's own code, for plain C++,
+or for a step with no third-party surface - and if Context7 is not connected in this
+session, say so in the `docs:` line and name what you checked instead. An
+unavailable tool is a recorded limitation, never a silent one.
+
 Record, filling every line:
 
 ```
@@ -121,6 +132,9 @@ test:      <cmd, with -R>
 sanitizer: <existing preset or build dir, or "none - create ad hoc per the block
            below"; the full configure/build/run trio goes here, all three lines>
 lint:      <clang-tidy -p <build> <file>, or "not configured">
+docs:      <Context7 ids consulted, `/org/project` with the version, one per API
+           this change touches; or "none - no third-party surface"; or "Context7
+           unavailable - <what was read instead>">
 compiler:  <id + version>, standard: <C++NN>
 test framework: GoogleTest, <N> tests currently registered
 compile_commands.json: <path, or absent>
@@ -240,7 +254,11 @@ Check at either scope:
 8. Any command anywhere in the plan that would not run as written - a dropped
    `--preset`, a `-R` filter matching no registered test, a configure preset name
    used where a test preset is required. That is BLOCK: the plan is recording
-   commands nobody executed.
+   commands nobody executed. The same failure in the other direction: a third-party
+   call or a claim about how a CMake feature behaves, where the `docs:` line and the
+   step's `API checked:` line name no source it was read from. Judge whether the
+   claim is sourced, not whether it is correct - you read the tree, you do not go
+   fetch documentation to referee it.
 
 Additionally, when SCOPE is the whole plan:
 9. Step order: does any step depend on something a later step creates?
@@ -351,6 +369,9 @@ Test first:
             saying what makes it fail. At least one.>
   guards:  <TEST(Suite, Name) - already green, must stay green. Optional.>
 
+API checked: <every third-party call this step introduces, against the Context7 id
+             it was read from; or "none - no third-party call in this step">
+
 Commands:
   build: <exact cmd>
   test:  <exact cmd, preset included, with -R>
@@ -441,6 +462,7 @@ Thoughts that mean stop. Recognising one means you are already rationalising.
 | "Sanitizers are slow and the change is small" | Small pointer changes are exactly what ASan catches. Run it. |
 | "Step 4 depends on step 6, I'll merge them" | The step order was reviewed. Changing it needs a new review. |
 | "I'll fix this nearby thing while I'm here" | Not in this step, not in this commit. Note it and move on. |
+| "I know this API, no need to look it up" | Your training has a cutoff; the project pins a version. That is two ways to be wrong about one signature. |
 | "One more round and it will be `PASS`" | Count the dispatches, then read gate 7. A round called "confirming" is round four. |
 | "The verdict is `REVISE`, so I cannot start" | `REVISE` with every finding dispositioned is a cleared scope. Gate 1 says so. |
 
