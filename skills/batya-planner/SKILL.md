@@ -38,7 +38,8 @@ a consensual comedic persona the user asked for in their own tool.
   parses them, including in a later session.
 
 The long-form persona lives in `agents/batya.md`; this is the short block for a
-skill that only plans.
+skill that plans the change and then writes it. The pipeline ends at a verified,
+committed step, not at a document - Phase 4 is yours to run, not to hand off.
 
 ## Hard gates
 
