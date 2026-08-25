@@ -491,6 +491,80 @@ either - get fixed in the verdict or the backlog itself, never in code
 this scope; the third round still open means stop and hand the verdict to the
 human as a decision, not a fourth dispatch.
 
+## Phase 5 - Docs
+
+Gate 1: refuse to write anything under `doc/` unless `Audit status:` already
+reads `verdict` or `documenting`. `preflight`, `mapped`, `domains-cleared`,
+`named` have not earned this phase yet. `complete` means every ledger row
+that can carry a document already carries one - say so and stop; there is
+nothing left to write.
+
+This is the only phase this skill repeats, one domain per run, on purpose.
+"Do all five domains, I want the docs finished today" is pressure, not a new
+instruction - gate 10 is what stands between a rushed human and five thin
+files, and it does not bend because the request is reasonable-sounding.
+
+### The doc directory has to be tracked before anything is written
+
+Before writing a single byte, re-check the destination the `## Facts` line
+`doc target:` already named - what was true in Phase 0 can have changed:
+
+```
+git check-ignore -v <doc dir>
+```
+
+A hit means nobody outside this machine will ever see what gets written
+there - not a fresh clone, not CI, not a cloud agent, the exact blind spot
+this audit exists to catch elsewhere. Filling an invisible directory with
+careful work is worse than leaving it empty, because empty is honest and a
+careful-looking document nobody receives is not. Say that, in character,
+name the ignoring line `check-ignore` printed, and put the decision to the
+human - untrack it, or point this phase at a tracked directory - then stop.
+Write nothing under `doc/` until they answer. A miss (no output, non-zero
+exit) is the fact that clears this check; carry on.
+
+### Order
+
+On first entry (`Audit status: verdict`), set it to `documenting` before
+writing anything, then proceed. On a later run it is `documenting` already.
+
+1. `doc/CLAUDE.md` does not exist: write it verbatim from
+   [`doc-template.md`](doc-template.md)'s authoring rules. It exists
+   already: leave it - once it is there it is the audited repo's file, not
+   this audit's to rewrite.
+2. `doc/index.md` does not exist: write it with its top heading and nothing
+   under it yet. Domain sections are added one at a time, as each domain is
+   documented, never all at once from the ledger - the index only ever
+   lists documents that exist (gate 10).
+3. Walk the `## Domain ledger` in row order for the first row whose
+   `Status` is not `documented`:
+   - **`Status: unmapped`** - a `theirs only` row: no cluster ever stood
+     behind it, so no directories, no entry points, nothing Phase 1 or
+     Phase 3 measured to write a document from. Writing one anyway is
+     exactly the stub gate 10 forbids. Say so, point at that row's own
+     Notes column - the Delta in Phase 2 already explains where the human's
+     word for it went instead - and move to the next undocumented row
+     without stopping the phase. Skipping a row that was never going to
+     have a document does not spend this run's one document.
+   - **`Status: mapped`** - this is the domain to document this run. Write
+     `doc/domains/<name>.md` from [`doc-template.md`](doc-template.md)'s
+     domain shape, filled only from what the state file already measured
+     for this domain's cluster: the Repo map's Targets / Directories /
+     Entry points rows for "Where it lives", the Naming findings for
+     "Entities", the Repo map's Cross-boundary includes and Blast radius
+     rows for "How it talks to other domains", and the Refactor backlog
+     rows tagged with this domain for "Known rot". `doc-template.md` says,
+     section by section, what to do when a section has nothing to fill it
+     from - never leave a heading with nothing under it. Add the domain's
+     entry to `doc/index.md` in the same edit, under the group heading that
+     fits it - `doc-template.md` says how. Set this ledger row's `Status`
+     to `documented`. Stop and report: which domain, which files changed,
+     and which ledger rows, if any, were skipped this run as permanently
+     `unmapped`.
+   - **No row left except `documented` and permanently `unmapped`**: every
+     domain that could carry a document already does. Set
+     `Audit status: complete` and report that instead of a document.
+
 ## Review log
 
 ```markdown
