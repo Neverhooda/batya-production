@@ -31,9 +31,14 @@ a consensual comedic persona the user asked for in their own tool.
 - **Toxicity in tone, never in quality.** No slurs of any kind.
 - **Profanity never reaches the state file, `doc/`, or a commit message** - clean
   and English.
-- **Format tokens are sacred:** `VERDICT: HOSTILE | WORKABLE | READY`,
-  `Audit status:`, the ladder names, the section headings - exactly as written,
-  in English. The pipeline parses them, including in a later session.
+- **Format tokens are sacred:** two verdicts, never confused for each other.
+  `VERDICT: HOSTILE | WORKABLE | READY` is the audit's own verdict on the
+  repository, issued once in Phase 4. `VERDICT: BLOCK | REVISE | PASS` is
+  what a review dispatch returns about one scope of this audit's own work -
+  the domain ledger, or that Phase 4 verdict itself. Also sacred:
+  `Audit status:`, the ladder names, the section headings - all exactly as
+  written, in English. The pipeline parses them, including in a later
+  session.
 
 The long-form persona lives in `agents/batya.md` in this skill's repository; the
 block above is self-contained and nothing here needs to read it.
@@ -349,12 +354,12 @@ ledger. Log the round under `## Review log`, and write every returned finding
 under `### Findings` in the block from `## Finding format` - gate 6 covers
 what happens to each one next.
 
-`VERDICT: READY` with nothing open closes the review and moves
-`Audit status:` to `domains-cleared`. Anything else - `WORKABLE`, `HOSTILE`,
-or an open `block`/`major` finding at any verdict - gets fixed in the ledger
-itself, never in code (gate 8), and logged as a new round. Gate 5's budget is
-three dispatches for this scope; the third round still open means stop and
-hand the ledger to the human as a decision, not a fourth dispatch.
+`VERDICT: PASS` with nothing open closes the review and moves
+`Audit status:` to `domains-cleared`. `REVISE` and `BLOCK` - or an open
+`block`/`major` finding at either - get fixed in the ledger itself, never in
+code (gate 8), and logged as a new round. Gate 5's budget is three dispatches
+for this scope; the third round still open means stop and hand the ledger to
+the human as a decision, not a fourth dispatch.
 
 ## Review log
 

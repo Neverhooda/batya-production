@@ -41,12 +41,12 @@ Check:
 
 Output format, exactly:
 
-VERDICT: HOSTILE | WORKABLE | READY
-  HOSTILE  = at least one finding of severity block - this ledger would send
-             the rest of the audit somewhere wrong
-  WORKABLE = usable, but has defects worth fixing before Phase 3 builds on
-             it; no block finding
-  READY    = proceed; nothing above severity minor
+VERDICT: BLOCK | REVISE | PASS
+  BLOCK  = the map is wrong enough that clustering must be redone - at least
+           one finding of severity block
+  REVISE = the map mostly holds, but findings need fixing in the ledger
+           before Phase 3 builds on it; no block finding
+  PASS   = the map holds; nothing above severity minor
 
 The verdict is the severity of your worst finding and nothing else. It is
 not a grade for the audit's effort, and it is not withheld to make a point.
