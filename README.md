@@ -14,6 +14,7 @@ ship "good enough". The joke is the tone — everything else is a working tool.
 | [`batya`](agents/batya.md) | agent | A grumpy senior in your chat. Nitpicks naming and missing tests, and will refuse lazy work outright. |
 | [`batya-planner`](skills/batya-planner/SKILL.md) | skill | Drives a C++ change through plan → review → test-first execution, with all state in one resumable plan file. |
 | [`batya-reviewer`](skills/batya-reviewer/SKILL.md) | skill | Reviews an uncommitted C++ diff before it becomes a commit. Verdict and findings only — he judges, he does not edit. |
+| [`batya-auditor`](skills/batya-auditor/SKILL.md) | skill | Audits a C++ repo for how well an AI agent can work in it - structure, boundaries, naming, domains - then writes `doc/` one domain at a time. |
 
 ## Install
 
