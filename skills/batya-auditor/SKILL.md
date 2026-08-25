@@ -284,9 +284,12 @@ Fix: <the smallest change that removes the failure>
 Disposition: <confirmed | dropped: reason | overruled by human: what they said>
 ```
 
-Findings are recorded under a `### Findings` subsection beneath the ledger or
-the verdict that produced them, numbered `F<N>` in the order first raised
-across the whole audit.
+A finding that cannot fill `Task` with an actual change is dropped, and
+dropping it is the correct outcome, not a gap in the audit.
+
+Findings are recorded under a `### Findings` subsection beneath the ledger, the
+naming findings, or the verdict that produced them, numbered `F<N>` in the
+order first raised across the whole audit.
 
 ## Phase 2 - Domains
 
@@ -360,6 +363,128 @@ what happens to each one next.
 code (gate 8), and logged as a new round. Gate 5's budget is three dispatches
 for this scope; the third round still open means stop and hand the ledger to
 the human as a decision, not a fourth dispatch.
+
+## Phase 3 - Naming
+
+Per domain in the ledger with `Status: mapped` - a `theirs only` row has no
+directories behind it, so there is nothing to search and it is skipped.
+Exclude the vendored/generated paths Phase 0 recorded from every command
+below, the same way Phase 1's commands already did.
+
+Run, substituting the domain's own `Directories` column from the ledger:
+
+```
+git grep -n 'class \|struct ' -- '<domain dirs>' | sed -E 's/.*(class|struct) ([A-Za-z_][A-Za-z0-9_]*).*/\2/' | sort | uniq -c | sort -rn
+git grep -c 'Manager\|Helper\|Utils\|Impl\|Base' -- '<domain dirs>'
+```
+
+The first line counts how often each name follows `class`/`struct` inside the
+domain - a name that turns up more than once there is a synonym or a homonym
+candidate, not yet either. Comment lines and template parameters
+(`template <class T>`) surface in the same list as noise; read past them,
+never filter them with a third command. The second line reports, per file, how
+many `Manager`/`Helper`/`Utils`/`Impl`/`Base` hits it holds; no hit anywhere in
+a domain is a fact - a clean domain - not a failed command.
+
+Turn that output into three checks, each written as a finding in the block
+from `## Finding format`, dimension `naming`:
+
+- **synonyms** - two or more words for one concept, listed with the files
+  that use each
+- **homonyms** - one word for two concepts, with both definitions
+- **buckets** - `Manager` / `Helper` / `Utils` / `Impl` classes, with what
+  each actually holds
+
+A check that turns up nothing for a domain is a fact, not a gap: say so and
+move to the next domain.
+
+```markdown
+## Naming findings
+
+### <domain>
+<the two commands' output for this domain>
+
+Findings: F<n>, F<n>
+
+### Findings
+<the F<N> blocks the domain summaries above point at>
+```
+
+Repeat per `mapped` domain. When every one has been run through this section,
+set `Audit status: named`.
+
+## Phase 4 - Verdict
+
+Assembling, not measuring: no new commands here beyond what it takes to
+double-check a number already on the page. Score each of the six dimensions
+from evidence already in the file - the bracketed token is what a finding's
+`dimension` field carries:
+
+- **navigability** [`navigability`] - can an agent find the code for a named
+  feature without reading the tree
+- **boundaries** [`boundaries`] - do modules have edges, or does everything
+  include everything
+- **naming** [`naming`] - one concept, one word
+- **context** [`context`] - what burns an agent's context: file sizes,
+  vendored and generated trees
+- **feedback** [`feedback`] - can an agent check its own work: presets, test
+  targets, wall time, lint
+- **surface** [`surface`] - what an agent reads first, and whether what it
+  claims is still true
+
+For each dimension, one paragraph pointing at the findings (`F<N>`) that carry
+it, or, if none, at the Phase 0/1 facts that clear it. A dimension nothing on
+the page supports stays silent about it, never scored from impression.
+
+```markdown
+## Verdict
+
+<dimension>: <paragraph, F<N> references or the facts that clear it>
+...
+
+VERDICT: HOSTILE | WORKABLE | READY
+```
+
+`VERDICT` counts only findings whose disposition is `confirmed` - a `dropped`
+or `overruled by human` finding does not count, whatever its severity:
+
+- `HOSTILE` - at least one `block` finding confirmed and open
+- `WORKABLE` - no `block`, at least one `major` confirmed and open
+- `READY` - no `block` and no `major` confirmed and open
+
+## Refactor backlog
+
+Ranked, one row per task a human or `batya-planner` could pick up next:
+
+```markdown
+## Refactor backlog
+
+| # | Task | Domain | Closes | Blast radius | Observable afterwards |
+|---|---|---|---|---|---|
+| 1 | <imperative, one line> | <domain> | F3, F7 | ~<N> includers | <what must work, and how it is seen> |
+```
+
+`Observable afterwards` is not optional. `batya-planner` refuses a task
+stated as "it's broken, figure it out" until the human says what must work
+afterward and how that will be observed; a backlog row without that column is
+not a task `batya-planner` can accept, and cannot be handed over at all.
+
+### Review
+
+Gate 4's second review point. Fill in [`review-prompt.md`](review-prompt.md)'s
+verdict prompt and paste it whole into a fresh read-only subagent - opencode:
+`task` with the `explore` agent; Claude Code: the `Task` / `Agent` tool with
+the `Explore` agent; no dispatch available means the human runs it in a
+separate session and pastes the verdict back, never you reviewing your own
+verdict. Log the round under `## Review log`, and write every returned
+finding under `### Findings` in the block from `## Finding format`.
+
+`VERDICT: PASS` with nothing open closes the review and moves `Audit status:`
+to `verdict`. `REVISE` and `BLOCK` - or an open `block`/`major` finding at
+either - get fixed in the verdict or the backlog itself, never in code
+(gate 8), and logged as a new round. Gate 5's budget is three dispatches for
+this scope; the third round still open means stop and hand the verdict to the
+human as a decision, not a fourth dispatch.
 
 ## Review log
 
