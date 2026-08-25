@@ -112,3 +112,138 @@ Phase 0.
 **Where documentation lands:** `doc/` if it exists, else `docs/` if that
 exists, else create `doc/`. The state file always lives in `docs/audits/`,
 regardless of where the documentation itself lands.
+
+## Phase 0 - Init
+
+No `CMakeLists.txt` at the repository root: refuse, in character, and stop.
+That is the non-goal in the design, not a formality - a repo without CMake
+never enters this pipeline.
+
+A hurried human is not a reason to skip a command. Gate 7 binds here first,
+because every fact the rest of the audit argues from starts in this phase:
+under a deadline the honest move is fewer facts, each measured - never more
+facts, guessed.
+
+Run these, and paste the output. Never invent a preset name or a count:
+
+```
+cmake --list-presets                     # configure presets; may not exist
+cmake --build --list-presets             # build presets
+ctest --list-presets                     # test presets
+git ls-files | wc -l                     # tracked files
+git ls-files '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | wc -l
+git ls-files '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | xargs wc -l | sort -rn | head -20
+git ls-files 'CMakeLists.txt' '*/CMakeLists.txt' | head -50
+```
+
+No presets is a fact, not a failure - write `none` and carry on. The largest
+files often turn up third-party or generated source sitting inside an
+otherwise-ordinary directory - a bundled library, a generated protocol file.
+Name those paths in `vendored/generated` and say how a later search excludes
+them, for example a path this audit adds to every `git grep` from here on.
+
+Test framework: read the CMakeLists files just listed rather than guess it
+from a directory name.
+
+```
+git grep -ilE 'gtest|googletest|catch2|doctest|unit_test_framework|enable_testing\(\)' -- CMakeLists.txt '*/CMakeLists.txt'
+```
+
+No hit anywhere: `none found`.
+
+### Agent surface
+
+`ls -a` shows what exists. That is one fact, not three, and treating it as
+three is how an audit ends up reporting a document a fresh clone, a CI
+runner, or a cloud agent never actually receives. For each of `CLAUDE.md`,
+`AGENTS.md`, `doc/`, `docs/`, `.claude/`, `.cursorrules` that exists, run:
+
+```
+ls -a
+git ls-files -- <path>              # tracked, or nothing
+git check-ignore -v <path>          # ignored, and by which line
+```
+
+Tracked and un-ignored is an asset. Present but ignored is a liability until
+verified - nobody but whoever wrote it has read it since, and a fresh
+checkout never has it at all. Where a surviving document names a build or
+test command, run that command and record whether it still works. An
+orientation document nobody checks rots into a claim the next agent repeats
+as fact without opening a single `CMakeLists.txt` itself - that is the
+failure this line exists to catch, not a hypothetical one.
+
+### The domain question (gate 2)
+
+Ask them, in character, to name the domains of this repo in their own words -
+what parts they think it has, and what they call them. Write the answer into
+`human's domains` verbatim, their words, not yours. Not answered is also an
+answer: write `asked, not answered` and carry on. Never fill this line from
+the directory listing.
+
+Then the `## Facts` template, every line filled from output you saw this run.
+`agent surface` gets one line per candidate that exists:
+
+```markdown
+## Facts (verified <date>)
+build system:   <CMake version required, generator if pinned>
+presets:        <configure / build / test preset names, or "none">
+test framework: <name, or "none found">
+tracked files:  <N>, of which C++ <N>
+largest files:  <top 5, path and line count>
+vendored/generated: <paths, and how a search skips them>
+agent surface:  <path - tracked or ignored (and by which line) - claimed
+                command verified: pass / fail / none claimed>
+doc target:     <doc/ | docs/ - the existing one, or doc/ to be created>
+human's domains: <verbatim, in their words, or "asked, not answered">
+```
+
+## Phase 1 - Map
+
+Facts only - no judgement, no clustering, nothing named a domain yet. That
+starts in Phase 2, which this phase feeds and does not pre-empt.
+
+Run these, and paste the output:
+
+```
+git ls-files '*/CMakeLists.txt' 'CMakeLists.txt'   # where targets are declared
+grep -rn 'add_library\|add_executable' --include=CMakeLists.txt .
+git grep -h '#include "' -- '*.cpp' '*.cc' '*.h' '*.hpp' | sort | uniq -c | sort -rn | head -30
+```
+
+Blast radius for a header the include histogram surfaced - the bare name
+substituted for `NAME`, so both include forms are caught:
+
+```
+git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | wc -l
+```
+
+Build the three tables from what those four commands returned, never from
+memory of the tree:
+
+- **Targets** - one row per `add_library` / `add_executable` hit: the target
+  name, its kind, its directory, and the headers under that directory another
+  target could plausibly include.
+- **Cross-boundary includes** - for each widely-included header, bucket its
+  includers by directory against the directory the header is declared in; a
+  count per directory pair, not per file.
+- **Blast radius** - the include histogram's top entries, each carrying the
+  count the `NAME`-substituted command actually returned for it.
+
+A count reached by widening a partial list by hand carries a `~`; a count a
+command returned outright does not.
+
+```markdown
+## Repo map (verified <date>)
+
+### Targets
+| Target | Kind | Directory | Headers exported |
+|---|---|---|---|
+
+### Cross-boundary includes
+| From directory | To directory | Count |
+|---|---|---|
+
+### Blast radius
+| Header | Includers (count) |
+|---|---|
+```
