@@ -114,6 +114,16 @@ batch several entries ahead of the documents they point at.
 
 ## `doc/domains/<name>.md`
 
+`<name>` is a slug derived from the ledger's `Domain` column, not copied
+from it verbatim: lower case, spaces become hyphens, and anything in
+parentheses is dropped along with the parentheses themselves - a ledger row
+named `join_server (hw11 + hw01 bundled)` files as
+`doc/domains/join_server.md`, not `join_server-hw11-hw01-bundled.md`, and
+not `join_server.md` arrived at by improvising a different rule on a
+different run. The slug is fixed the first time this domain is documented
+and never changes after - `index.md` and the ledger's own row both link to
+it by that name, and a later rename would orphan both.
+
 **A section with nothing to fill it is removed, not left empty - Table of
 Contents entry and all.** Before writing any section below, ask what goes
 under it when the state file gives this domain nothing: if the honest
@@ -175,15 +185,21 @@ above - it is hand-maintained per `doc/CLAUDE.md`, not a fixed list.
   for this domain's directories found at least one declaration. A domain
   with zero hits - data-driven code, a thin executable, C-style headers -
   gets no Entities section and no empty header-only table. `Name` and
-  `Declared in` come straight from that grep. `What it is` is the one-line
-  gloss the naming pass already needed to tell entities apart while
-  building its findings. `Also called` is filled **only** from a
-  confirmed synonym finding in `## Naming findings` that names this entity
-  - the finding's `Evidence` already lists the other words and the files
-    that use each; copy the other words in, not the file list. An entity
-  with no synonym finding gets a blank cell, which is the normal, honest
-  state of a table cell and not the stub gate 10 is about - the heading
-  above the table already earned its place from the grep hit.
+  `Declared in` come straight from that grep. `What it is` has no phase that
+  produces it directly - Phase 3 outputs grep histograms and findings about
+  synonyms, homonyms, and buckets, none of which gloss an individual entity
+  that isn't itself the subject of a finding. Source it from the ledger's
+  `Notes` for this domain when that already names the entity's role, or from
+  a naming or verdict finding that discusses it by name; an entity neither
+  source glosses gets a blank cell rather than an invented sentence - gate
+  10 forbids the impression, not the blank. `Also called` is
+  filled **only** from a confirmed synonym finding in `## Naming findings`
+  that names this entity - the finding's `Evidence` already lists the other
+  words and the files that use each; copy the other words in, not the file
+  list. An entity with no synonym finding gets a blank cell there too, which
+  is the normal, honest state of a table cell and not the stub gate 10 is
+  about - the heading above the table already earned its place from the
+  grep hit.
 - **How it talks to other domains** exists only when the Repo map's
   Cross-boundary includes or Blast radius tables show at least one row
   with this domain's directory on either side. Zero such rows is a real,
@@ -198,8 +214,14 @@ above - it is hand-maintained per `doc/CLAUDE.md`, not a fixed list.
   domains will not have this section on their first document, and that is
   correct: an invented invariant is worse than a missing section, because
   the next agent will trust it and design against a rule nobody enforces.
-- **Known rot** exists only when `## Refactor backlog` or `### Findings`
-  has at least one row or finding whose `Domain` names this one. List it by
-  id (`F<n>`) and one line of why, don't restate the whole finding. A
-  domain with nothing open here is good news that speaks for itself in the
-  ledger and the backlog - it does not need a section to repeat it.
+- **Known rot** exists only when this domain has something tied to it in
+  either place a finding can be tied to a domain: a `## Refactor backlog`
+  row whose `Domain` column names it, or a `## Naming findings` entry
+  grouped under this domain's own `### <domain>` heading. The finding
+  format itself carries no `Domain` field - `Task`, `Failure`, `Evidence`,
+  `Fix`, `Disposition`, and severity are all it has - so domain membership
+  for a naming finding comes from which `### <domain>` section it sits
+  under, never from a field inside the finding block. List matches by id
+  (`F<n>`) and one line of why, don't restate the whole finding. A domain
+  with nothing open here is good news that speaks for itself in the ledger
+  and the backlog - it does not need a section to repeat it.

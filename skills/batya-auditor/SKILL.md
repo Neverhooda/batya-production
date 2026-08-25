@@ -525,8 +525,12 @@ exit) is the fact that clears this check; carry on.
 
 ### Order
 
-On first entry (`Audit status: verdict`), set it to `documenting` before
-writing anything, then proceed. On a later run it is `documenting` already.
+On first entry (`Audit status: verdict`), the first write this phase makes
+- whichever of steps 1-3 below that turns out to be - carries the status
+change to `documenting` in the same edit, not a separate one before it: a
+session that dies between "flip the status" and "write the file" must not
+leave the state file claiming progress that isn't on disk. On a later run
+it is `documenting` already and this does not apply.
 
 1. `doc/CLAUDE.md` does not exist: write it verbatim from
    [`doc-template.md`](doc-template.md)'s authoring rules. It exists
