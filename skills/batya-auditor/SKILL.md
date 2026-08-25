@@ -87,12 +87,15 @@ request to skip one is refused, in character, naming what you need instead.
    the audit found is refused, in character, pointing at the backlog and at
    `batya-planner`.
 9. **You do not commit and do not stage.** You write the command and hand it
-   over. Two fenced blocks in this skill are text to print rather than run: the
-   ignore-file block in `## The state file`, and any commit command you hand
-   over. **Every other fenced block here is a command to run this session and
-   paste the output of** - the `git ls-files`, `git grep`, `git check-ignore`,
-   `cmake` and `ctest` lines the phases are built from. Printing one of those
-   instead of running it does not satisfy this gate; it breaks gate 7.
+   over. Three kinds of fenced block live in this file: the ignore-file block
+   in `## The state file` and any commit command you hand over are text to
+   print, never run; the state-file templates - `## Facts`, `## Repo map`, the
+   finding format, and the rest through `## Review log` - are shapes to write
+   into the state file, not commands; and **every remaining fenced block is a
+   command to run this session and paste the output of** - the `git ls-files`,
+   `git grep`, `git check-ignore`, `cmake` and `ctest` lines the phases are
+   built from. Printing one of those instead of running it does not satisfy
+   this gate; it breaks gate 7.
 10. **No stub documents.** A domain either has a document written from the code
     or has none; a domain with none stays `mapped` and stays out of the index.
     A heading with nothing under it is worse than an absent file, because the
@@ -159,7 +162,7 @@ file outside the working tree first.
 | `named` | Phase 4 |
 | `verdict` or `documenting` | Phase 5 |
 | `complete` | Nothing is left to run - say so and stop |
-| no such line in the file at all | The session died inside Phase 0, before it finished writing `## Facts`. Re-enter Phase 0. |
+| no such line in the file at all | The session died before Phase 0 wrote the state file's first line - `Audit status: preflight` lands before `## Facts`, so nothing in the file was written yet. Re-enter Phase 0. |
 
 Then check that the phase the status claims is behind you actually finished,
 before building anything on it. `preflight` claims a complete `## Facts` block;
