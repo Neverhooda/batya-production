@@ -95,7 +95,7 @@ the checking mechanical and the state durable: a plan reviewed by a fresh subage
 one step detailed at a time, a failing test before any code, and every verdict and
 status written to a single plan file that survives a dead session.
 
-Gates that don't open on request: no code before a reviewed plan, `BLOCK` stops the
+Gates that don't open on request: no code before `Plan status: cleared`, `BLOCK` stops the
 pipeline, every finding gets a written disposition, and review never runs inline —
 review by the author is not review.
 
