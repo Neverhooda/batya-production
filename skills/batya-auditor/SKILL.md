@@ -265,3 +265,108 @@ command returned outright does not.
 | Header | Includers (count) |
 |---|---|
 ```
+
+## Finding format
+
+Every finding uses this block - gate 3:
+
+```
+### F<N> - <navigability | boundaries | naming | context | feedback | surface> - <block | major | minor>
+Task: <a change someone would plausibly ask for>
+Failure: <what the agent gets wrong, or how much it must read to get it right>
+Evidence: <files, counts, the command that produced them>
+Fix: <the smallest change that removes the failure>
+Disposition: <confirmed | dropped: reason | overruled by human: what they said>
+```
+
+Findings are recorded under a `### Findings` subsection beneath the ledger or
+the verdict that produced them, numbered `F<N>` in the order first raised
+across the whole audit.
+
+## Phase 2 - Domains
+
+Clustering, not classification: candidate domains come from the coupling
+Phase 1 already measured, never from a word. Start with one candidate cluster
+per directory in the Repo map's Targets table. Merge two directories into the
+same cluster when the Cross-boundary includes table shows a high count
+between them and a low count everywhere else - two directories that lean on
+each other more than on the rest of the tree are one domain, not two. A
+directory that declares no target of its own and shows up only as a header's
+home in the Blast radius table is not a domain by itself: fold it into
+whichever cluster(s) actually consume it, or, if its includers spread across
+many unrelated clusters, carry it as a shared utility rather than force it
+into one - the review prompt's first question exists for the case where that
+call was wrong. Every cluster in the result points back at a row in the Repo
+map; a cluster backed by neither a target nor a directory is not a cluster,
+it is a guess, and gate 7 rules it out.
+
+Then the contrast. Walk `human's domains` from the `## Facts` template, one
+name at a time, against the clusters just built - gate 2 is why that line was
+written down before this phase existed:
+
+- **agreed** - a name in their list that a cluster matches, judged by what
+  the cluster contains, never by how close the two words look
+- **theirs only** - a name they use that no cluster carries: say which
+  cluster hides that concept instead, or that it is not in the tree at all
+- **code only** - a cluster nobody named: write in the ledger's Notes why -
+  this is usually where the accidents live
+
+`asked, not answered` in `## Facts` means every cluster is `code only` and
+the Delta says so; there is nothing to agree or disagree with.
+
+### Domain ledger
+
+Every column traces to a fact Phase 1 already measured. `Targets` and
+`Directories` are the cluster's own rows in the Repo map's Targets table.
+`Entry points`: for a cluster holding an executable target, that target
+(Targets table, Kind); for a library target, the headers it exports (Targets
+table, Headers exported). A `theirs only` row has no cluster behind it, so
+both columns stay empty and `Status` reads `unmapped`; an `agreed` or
+`code only` row always has one, so `Status` reads `mapped` here -
+`documented` is not reached until Phase 5.
+
+```markdown
+## Domain ledger
+
+| Domain | Status | Targets | Directories | Entry points | Source | Notes |
+|---|---|---|---|---|---|---|
+| <name> | unmapped \| mapped \| documented | <targets> | <dirs> | <files> | agreed \| theirs only \| code only | <one line> |
+
+### Delta
+agreed:      <names>
+theirs only: <names, and where the code puts that concept instead>
+code only:   <names, and why nobody talks about them>
+```
+
+### Review
+
+Gate 4's first review point. Fill in [`review-prompt.md`](review-prompt.md)'s
+ledger prompt and paste it whole into a fresh read-only subagent - opencode:
+`task` with the `explore` agent; Claude Code: the `Task` / `Agent` tool with
+the `Explore` agent; no dispatch available means the human runs it in a
+separate session and pastes the verdict back, never you reviewing your own
+ledger. Log the round under `## Review log`, and write every returned finding
+under `### Findings` in the block from `## Finding format` - gate 6 covers
+what happens to each one next.
+
+`VERDICT: READY` with nothing open closes the review and moves
+`Audit status:` to `domains-cleared`. Anything else - `WORKABLE`, `HOSTILE`,
+or an open `block`/`major` finding at any verdict - gets fixed in the ledger
+itself, never in code (gate 8), and logged as a new round. Gate 5's budget is
+three dispatches for this scope; the third round still open means stop and
+hand the ledger to the human as a decision, not a fourth dispatch.
+
+## Review log
+
+```markdown
+## Review log
+
+### Round <N> - <scope> - <date>
+Dispatched: <agent type>
+VERDICT: <token>
+Findings: F<n>, F<n>
+Dispositions: F<n> confirmed, F<n> dropped: <reason>
+```
+
+Append-only, matching the rule already stated after the gates: a corrected
+disposition is a new round, never an edit to an old one.
