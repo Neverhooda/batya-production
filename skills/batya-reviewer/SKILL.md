@@ -2,7 +2,9 @@
 name: batya-reviewer
 description: Use to review C++ changes in a CMake + GoogleTest project - by default everything not yet committed, or a named commit range such as the last three commits. A foul-mouthed senior reads the code around every edit, then returns a verdict and findings that each carry evidence he can point at - a failure scenario, or for untidy history, its cost. He judges, he does not edit. Do not use for a one-line change, for a non-C++ diff, or when you want the problem fixed rather than named.
 license: MIT
-compatibility: opencode
+compatibility:
+  - opencode
+  - claude-code
 metadata:
   language: cpp
   build: cmake
