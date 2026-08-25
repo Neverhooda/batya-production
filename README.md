@@ -30,6 +30,7 @@ cd ~/src/batya-production
 ln -s "$PWD/agents/batya.md"       ~/.config/opencode/agents/batya.md
 ln -s "$PWD/skills/batya-planner"  ~/.config/opencode/skills/batya-planner
 ln -s "$PWD/skills/batya-reviewer" ~/.config/opencode/skills/batya-reviewer
+ln -s "$PWD/skills/batya-auditor"  ~/.config/opencode/skills/batya-auditor
 ```
 
 **Claude Code**, globally:
@@ -37,6 +38,7 @@ ln -s "$PWD/skills/batya-reviewer" ~/.config/opencode/skills/batya-reviewer
 ln -s "$PWD/agents/batya.md"       ~/.claude/agents/batya.md
 ln -s "$PWD/skills/batya-planner"  ~/.claude/skills/batya-planner
 ln -s "$PWD/skills/batya-reviewer" ~/.claude/skills/batya-reviewer
+ln -s "$PWD/skills/batya-auditor"  ~/.claude/skills/batya-auditor
 ```
 
 **One project only** — run from that project's root. Claude Code reads `.claude/`,
@@ -45,6 +47,7 @@ opencode reads `.opencode/`; the layout is the same in both:
 mkdir -p .claude/skills .claude/agents          # or .opencode/{skills,agents}
 ln -s ~/src/batya-production/skills/batya-planner  .claude/skills/batya-planner
 ln -s ~/src/batya-production/skills/batya-reviewer .claude/skills/batya-reviewer
+ln -s ~/src/batya-production/skills/batya-auditor  .claude/skills/batya-auditor
 ln -s ~/src/batya-production/agents/batya.md       .claude/agents/batya.md
 ```
 
@@ -52,9 +55,10 @@ Run `/agents` and `/skills` to confirm batya showed up.
 
 ## Calling him
 
-The skills work the same in both tools — `/batya-planner`, `/batya-reviewer`, or
-just describe the job and let the agent pick one. The agent is where the two
-differ, because they disagree about what an agent file is.
+The skills work the same in both tools — `/batya-planner`, `/batya-reviewer`,
+`/batya-auditor`, or just describe the job and let the agent pick one. The
+agent is where the two differ, because they disagree about what an agent file
+is.
 
 **Claude Code** treats `~/.claude/agents/*.md` as subagents. There is no way to
 change the persona of a session already running, so batya is chosen at startup:
@@ -113,6 +117,24 @@ clean diff really does come back `PASS` instead of a paragraph of invented conce
 He judges and does not edit. Ask him to fix it and he will tell you where to go.
 
 Full pipeline and gates: [`skills/batya-reviewer/SKILL.md`](skills/batya-reviewer/SKILL.md).
+
+### batya-auditor
+
+For judging how ready a C++ (CMake) repo is for AI coding agents — structure,
+module boundaries, naming, entities, domains — then writing `doc/`, one domain
+per run. A checklist can flag a missing README; it can't tell you that agents
+get lost because your build graph disagrees with the domains you'd draw on a
+whiteboard. This one measures that gap directly — domains come from build-graph
+coupling, never a word, and get checked against what the human calls them in
+their own words. A finding has to name what an agent would get wrong, not what
+merely looks untidy, or it's dropped.
+
+He never edits source — what he finds becomes a ranked backlog phrased for
+`batya-planner`, not a diff he makes himself. All state lives in one
+untracked file under `docs/audits/`, so a dead session resumes from the file
+alone.
+
+Full pipeline and gates: [`skills/batya-auditor/SKILL.md`](skills/batya-auditor/SKILL.md).
 
 ## Contributing
 
