@@ -90,8 +90,10 @@ tree and `CMakeLists.txt` files they describe. Judge against the code that
 actually exists, not against the state file's description of it.
 
 Check:
-1. Does every finding fill `Task` with a change someone would really ask
-   for - not a restated condition dressed up as a task?
+1. Does every finding's `Failure` name what an agent doing that `Task` gets
+   wrong, or how much it has to read to get it right - or does it just
+   restate the condition in other words, the way "no lint config" or "flat,
+   large modules" would?
 2. Is any `Evidence` line unsupported by a command - re-run the command it
    names yourself and compare, the way you would for a repo map number?
 3. Is any severity inflated - a `block` that names no failure a working

@@ -284,8 +284,13 @@ Fix: <the smallest change that removes the failure>
 Disposition: <confirmed | dropped: reason | overruled by human: what they said>
 ```
 
-A finding that cannot fill `Task` with an actual change is dropped, and
-dropping it is the correct outcome, not a gap in the audit.
+The test is `Failure`, not `Task`. Any condition can be dressed as a task -
+"add a lint config" names one and says nothing about what breaks. A finding
+survives when `Failure` names what an agent doing that task gets wrong, or
+how much it has to read to get it right, and `Evidence` shows it with files
+and counts from this run. A `Failure` that only restates the condition in
+other words - the config is missing, the files are large - is the condition
+talking, and the finding is dropped however true it is.
 
 Findings are recorded under a `### Findings` subsection beneath the ledger, the
 naming findings, or the verdict that produced them, numbered `F<N>` in the
