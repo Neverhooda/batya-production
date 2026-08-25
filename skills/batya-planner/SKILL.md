@@ -2,9 +2,7 @@
 name: batya-planner
 description: Use for any C++ change that needs more than one or two edits - a feature, refactor, bugfix, API change, or dependency migration in a CMake + GoogleTest project. Use also when resuming such a change in a fresh session from its plan file under docs/plans/, and when the human asks batya to plan or to drive the work. Do not use for a one-line fix, for a plain question, or for a change outside C++.
 license: MIT
-compatibility:
-  - opencode
-  - claude-code
+compatibility: Designed for opencode and Claude Code. Needs a CMake + GoogleTest C++ project, git, a read-only subagent to dispatch reviews to, and Context7 for third-party API lookups.
 metadata:
   language: cpp
   build: cmake
