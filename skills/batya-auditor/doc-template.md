@@ -15,7 +15,15 @@ Write this block verbatim as `doc/CLAUDE.md` in the audited repo, once, the
 first time Phase 5 runs. If it already exists, leave it: it belongs to that
 repo from then on, not to this audit.
 
-```markdown
+The outer fence below is **four** backticks, and it has to stay four: the block
+it delimits contains three-backtick examples of its own, and a closing fence may
+not carry an info string, so a three-backtick outer fence would be closed by the
+first bare three-backtick line inside it - cutting the block off mid-Links-rule
+and leaving the TOC and `index.md` rules outside the thing being copied. What
+gets written to `doc/CLAUDE.md` is everything between the four-backtick fences,
+inner fences included, and not the fences themselves.
+
+````markdown
 # Documentation authoring rules
 
 These rules apply to every Markdown file under `doc/`.
@@ -87,7 +95,7 @@ that fits it, with a one-paragraph description matching the style of the
 existing entries. Renaming or removing a document updates or removes its
 entry the same way. `index.md` lists only documents that exist, never a
 placeholder for one planned.
-```
+````
 
 ## `doc/index.md`
 
@@ -186,7 +194,14 @@ above - it is hand-maintained per `doc/CLAUDE.md`, not a fixed list.
   for this domain's directories found at least one declaration. A domain
   with zero hits - data-driven code, a thin executable, C-style headers -
   gets no Entities section and no empty header-only table. `Name` and
-  `Declared in` come straight from that grep. `What it is` has no phase that
+  `Declared in` are the two fields of that pass's second line - the
+  `sort -u` one, which prints the declared name and the file it was found in,
+  one row per pair. Read them off that list and nothing else: the histogram
+  line has counts and no paths, and `Declared in` is **not** sourced from
+  Doxygen tags, a fresh grep, or anything else back in the source tree - this
+  phase assembles, it does not measure. A name the `sort -u` list shows on two
+  rows is one entity per row, each with its own file, which is how a homonym
+  reaches the table honestly. `What it is` has no phase that
   produces it directly - Phase 3 outputs grep histograms and findings about
   synonyms, homonyms, and buckets, none of which gloss an individual entity
   that isn't itself the subject of a finding. Source it from the ledger's
@@ -222,12 +237,17 @@ above - it is hand-maintained per `doc/CLAUDE.md`, not a fixed list.
   the next agent will trust it and design against a rule nobody enforces.
 - **Known rot** exists only when this domain has something tied to it in
   either place a finding can be tied to a domain: a `## Refactor backlog`
-  row whose `Domain` column names it, or a `## Naming findings` entry
-  grouped under this domain's own `### <domain>` heading. The finding
-  format itself carries no `Domain` field - `Task`, `Failure`, `Evidence`,
-  `Fix`, `Disposition`, and severity are all it has - so domain membership
-  for a naming finding comes from which `### <domain>` section it sits
-  under, never from a field inside the finding block. List matches by id
+  row whose `Domain` column names it, or a finding id listed on the
+  `Findings:` line of this domain's own `### <domain>` entry under
+  `## Naming findings`. The finding format itself carries no `Domain` field -
+  `Task`, `Failure`, `Evidence`, `Fix`, `Disposition`, and severity are all it
+  has - so domain membership for a naming finding comes from that `Findings:`
+  pointer line and nowhere else. **Do not look for finding blocks sitting
+  under the domain heading; none ever do.** Phase 3 puts every `F<N>` block in
+  a sibling `### Findings` subsection and leaves the domain's own heading
+  carrying the pointer line alone, so a document written by scanning under the
+  heading finds nothing and silently drops the section - throwing away exactly
+  the output this audit ran to produce. List matches by id
   (`F<n>`) and one line of why, don't restate the whole finding. A domain
   with nothing open here is good news that speaks for itself in the ledger
   and the backlog - it does not need a section to repeat it.

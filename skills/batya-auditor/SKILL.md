@@ -45,8 +45,15 @@ block above is self-contained and nothing here needs to read it.
 
 ## Hard gates
 
+Violate one and the audit did not happen. Everything in this file binds; this
+list is the part that never bends on request. The phases below are procedure -
+they say what to run and what to write, and they never override a gate. A
+request to skip one is refused, in character, naming what you need instead.
+
 1. **No documentation before the verdict.** Nothing is written under `doc/`
-   until the state file says `Audit status: verdict`.
+   until the state file says `Audit status: verdict` **or later** - `documenting`,
+   which is what every Phase 5 run after the first one reads, and `complete`.
+   `preflight`, `mapped`, `domains-cleared`, and `named` have not earned it.
 2. **The human's domain list is recorded verbatim before any clustering.**
    Phase 0 asks and writes down the answer. A list written after the map can be
    bent to agree with it, and the delta is the point of the audit.
@@ -61,7 +68,14 @@ block above is self-contained and nothing here needs to read it.
    It never means you review it yourself.
 5. **Three review dispatches per scope, and no fourth.** A re-run after applying
    a finding spends the budget, never extends it. Spent with findings still
-   open: stop and put them in front of the human as a decision.
+   open: stop and put them in front of the human as a decision. **A decision is
+   what the human says after being shown the open items by name.** An
+   instruction that was already given before the gate tripped -
+   "run Phase 0 through Phase 4", "do all the domains", "finish it today" - is
+   not one, however broadly it was worded: it was given by someone who had not
+   seen the findings and could not have been deciding about them. Reading it as
+   consent to carry on is the failure this gate exists to stop, not a shortcut
+   through it.
 6. **Every finding gets a written disposition** in the state file: `confirmed`,
    `dropped: <reason>`, or `overruled by human: <what they said>`. Silence is
    not a disposition.
@@ -73,7 +87,12 @@ block above is self-contained and nothing here needs to read it.
    the audit found is refused, in character, pointing at the backlog and at
    `batya-planner`.
 9. **You do not commit and do not stage.** You write the command and hand it
-   over. Every fenced `git` block in this skill is text to print.
+   over. Two fenced blocks in this skill are text to print rather than run: the
+   ignore-file block in `## The state file`, and any commit command you hand
+   over. **Every other fenced block here is a command to run this session and
+   paste the output of** - the `git ls-files`, `git grep`, `git check-ignore`,
+   `cmake` and `ctest` lines the phases are built from. Printing one of those
+   instead of running it does not satisfy this gate; it breaks gate 7.
 10. **No stub documents.** A domain either has a document written from the code
     or has none; a domain with none stays `mapped` and stays out of the index.
     A heading with nothing under it is worse than an absent file, because the
@@ -90,8 +109,27 @@ the next session's point of view: no map, no domain ledger, no verdict, nothing
 to resume from but the code itself. Write it as each phase finishes, not at the
 end of the session.
 
-Before writing the first line, check whether `docs/audits/` is ignored. If it is
-not, say so once, in character, hand them the line, and carry on either way:
+Before writing the first line, check whether `docs/audits/` is ignored. On a
+first audit that directory does not exist yet, which is the whole reason for the
+trailing slash:
+
+```
+git check-ignore -v -- docs/audits/
+```
+
+**The trailing slash is load-bearing, and so is the absence of `--no-index`.** A
+directory-only pattern (`docs/audits/`) matches only a path git is told is a
+directory, and git cannot tell that from a name with nothing on disk behind it:
+on a repo that ignores `docs/audits/`, `git check-ignore -v -- docs/audits` exits
+1 and prints nothing while `git check-ignore -v -- docs/audits/` exits 0 and
+prints the rule. `--no-index` looks like it would help and does the opposite - it
+stops skipping tracked paths, so it reports a perfectly tracked directory as
+ignored the moment any matching pattern exists anywhere.
+
+A hit is the healthy case here: the state file is meant to be untracked, and the
+printed line names what ignores it. A miss means it is not ignored - say so once,
+in character, hand them the line, and carry on either way. Gate 9: this block is
+text to print, not a command to run.
 
 ```
 echo 'docs/audits/' >> .gitignore          # or, when the ignore file is not theirs:
@@ -110,9 +148,29 @@ State on disk and nowhere else is state one `git clean -fdx` removes: if the
 audit has to survive that, a fresh clone, or a second machine, copy the state
 file outside the working tree first.
 
-**Resuming:** with no phase argument, read the state file, read
-`Audit status:`, and enter the phase that status implies. No state file means
-Phase 0.
+**Resuming:** with no phase argument, read the state file and **check
+`Audit status:` first.** No state file at all means Phase 0.
+
+| `Audit status:` | Enter at |
+|---|---|
+| `preflight` | Phase 1 |
+| `mapped` | Phase 2 |
+| `domains-cleared` | Phase 3 |
+| `named` | Phase 4 |
+| `verdict` or `documenting` | Phase 5 |
+| `complete` | Nothing is left to run - say so and stop |
+| no such line in the file at all | The session died inside Phase 0, before it finished writing `## Facts`. Re-enter Phase 0. |
+
+Then check that the phase the status claims is behind you actually finished,
+before building anything on it. `preflight` claims a complete `## Facts` block;
+`mapped` claims all four `## Repo map` tables; `domains-cleared` claims a
+`## Domain ledger` with its `### Delta` and a `## Review log` round that cleared
+it; `named` claims a `## Naming findings` entry for every `mapped` ledger row.
+**A section that is missing or half-filled means that phase did not finish,
+whatever the status line says: re-enter it rather than trust what is there.** A
+half-written `## Repo map` reads exactly like a finished one to Phase 2, which
+clusters from it and has no way to notice - that is the case this check is here
+for, not a hypothetical one.
 
 **Where documentation lands:** `doc/` if it exists, else `docs/` if that
 exists, else create `doc/`. The state file always lives in `docs/audits/`,
@@ -193,15 +251,29 @@ failure this line exists to catch, not a hypothetical one.
 ### The domain question (gate 2)
 
 Ask them, in character, to name the domains of this repo in their own words -
-what parts they think it has, and what they call them. Write the answer into
+what parts they think it has, and what they call them. **Put the question and
+stop for it.** It is asked of the human and waited on, not narrated into the
+transcript while the run walks past it in the same breath - a question nobody
+was given the chance to answer was not asked. Write the answer into
 `human's domains` verbatim, their words, not yours. Not answered is also an
-answer: write `asked, not answered` and carry on. Never fill this line from
-the directory listing.
+answer: `asked, not answered` is what you write once they have had the chance
+and not taken it, never what you write because asking would have cost a turn.
+Nothing downstream can tell those two apart, and skipping the question is free
+while it silently removes the delta in Phase 2 - the most valuable thing this
+audit produces. Never fill this line from the directory listing.
 
-Then the `## Facts` template, every line filled from output you saw this run.
+Then the state file itself: create it with `Audit status: preflight` on its
+first line, above everything else, and fill in the `## Facts` template under it
+from output you saw this run. Every phase after this one moves that line along
+the ladder, but this is where it comes into existence, and it is the only phase
+that can: without it a session that dies in Phase 1 leaves a state file the
+resume rule has no way to place, holding the output of the two most expensive
+phases and no way to tell which of them finished.
 `agent surface` gets one line per candidate that exists:
 
 ```markdown
+Audit status: preflight
+
 ## Facts (verified <date>)
 build system:   <CMake version required, generator if pinned>
 presets:        <configure / build / test preset names, or "none">
@@ -226,9 +298,29 @@ Run these, and paste the output:
 
 ```
 git ls-files '*/CMakeLists.txt' 'CMakeLists.txt'   # where targets are declared
-grep -rn 'add_library\|add_executable' --include=CMakeLists.txt .
-git grep -h '#include "' -- '*.cpp' '*.cc' '*.h' '*.hpp' | sort | uniq -c | sort -rn | head -30
+grep -rnE '^[[:space:]]*(add_library|add_executable)\(' --include=CMakeLists.txt .
+git grep -hoE '#include[[:space:]]*[<"][^>"]+[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' \
+  | sed -E 's/.*[<"]([^>"]*)[>"].*/\1/' | sed 's|.*/||' \
+  | grep -Fxf <(git ls-files '*.h' '*.hpp' | sed 's|.*/||' | sort -u) \
+  | sort | uniq -c | sort -rn | head -30
 ```
+
+The `^[[:space:]]*` on the second line is not tidiness. A `CMakeLists.txt` whose
+every line is commented out still answers a bare `grep add_executable`, and the
+dead target it names becomes a candidate domain in Phase 2 that nothing
+downstream ever re-checks; anchoring at the start of the line drops it.
+
+The third line is the include histogram, and it counts **both** include forms
+against this repo's own tracked headers. A project that exposes its headers
+through `target_include_directories` and includes them with angle brackets is
+invisible to a `#include "` search: the histogram comes back full of `<string>`
+and `<vector>`, the cross-boundary table comes back empty, and Phase 2 has
+nothing to cluster on but one candidate per directory. The `grep -Fxf` against
+tracked header basenames is what keeps the standard library out of it, and it
+prints bare header names - which is the form the `NAME` substitution below
+wants anyway. The `<(...)` is bash and zsh; under a plain `sh` the same filter
+is a `git ls-files ... > /tmp/own-headers` and a `grep -Fxf /tmp/own-headers`,
+never a temporary file inside the audited repo (gate 8).
 
 Blast radius for a header the include histogram surfaced - the bare name
 substituted for `NAME`, so both include forms are caught - and the same
@@ -239,14 +331,26 @@ git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | w
 git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | xargs -n1 dirname | sort | uniq -c
 ```
 
+Headers a directory holds, one directory at a time, for the Targets table's
+last column - tracked files only, so a generated or untracked header never
+turns up in a table that says it did:
+
+```
+git ls-files '<dir>/*.h' '<dir>/*.hpp'
+```
+
 Target links - the build graph's own edges, which couple two targets
 without either sharing a single `#include`. A `target_link_libraries` call
 can run across several lines, so flatten each `CMakeLists.txt` first and the
 call comes out on one line regardless of how it was written:
 
 ```
-git ls-files '*/CMakeLists.txt' 'CMakeLists.txt' | xargs -I{} sh -c 'tr "\n" " " < "{}" | grep -oE "target_link_libraries\([^)]*\)"'
+git ls-files '*/CMakeLists.txt' 'CMakeLists.txt' | xargs -I{} sh -c 'sed "s/#.*//" "{}" | tr "\n" " " | grep -oE "target_link_libraries\([^)]*\)"'
 ```
+
+The `sed` runs before the `tr` on purpose: flattening first would fold a `#`
+comment over the rest of the file and leave a commented-out
+`target_link_libraries` looking exactly like a live one.
 
 One line per call: the target being linked, then everything it links,
 visibility keyword (`PUBLIC` / `PRIVATE` / `INTERFACE`) included in the raw
@@ -255,12 +359,15 @@ a target, an imported target such as `OpenSSL::SSL`, and a bare flag such as
 `${CMAKE_DL_LIBS}` all list the same way in what is left - gate 7 forbids
 sorting them by guesswork about which is which.
 
-Build the four tables from what those six commands returned, never from
-memory of the tree:
+Build the four tables from what those commands returned, never from memory of
+the tree:
 
 - **Targets** - one row per `add_library` / `add_executable` hit: the target
-  name, its kind, its directory, and the headers under that directory another
-  target could plausibly include.
+  name, its kind, its directory, and the tracked headers that directory holds -
+  what the `git ls-files '<dir>/*.h' '<dir>/*.hpp'` line above returns with that
+  directory substituted in, run once per directory. Not the headers another
+  target "could plausibly include": no command in this phase measures that, and
+  gate 7 rules out the impression.
 - **Cross-boundary includes** - the `dirname | sort | uniq -c` line already is
   the per-directory breakdown for that header; look up the header's own
   directory (a `git ls-files` for its name), drop the row where that matches
@@ -281,7 +388,7 @@ command returned outright does not.
 ## Repo map (verified <date>)
 
 ### Targets
-| Target | Kind | Directory | Headers exported |
+| Target | Kind | Directory | Tracked headers |
 |---|---|---|---|
 
 ### Cross-boundary includes
@@ -296,6 +403,12 @@ command returned outright does not.
 | Target | Directory | Links |
 |---|---|---|
 ```
+
+All four tables written, and only then, set `Audit status: mapped`. A
+`## Repo map` with two tables filled and two still empty is not a finished
+Phase 1, and it is indistinguishable from a finished one to the phase that
+reads it next - so the status is what says the phase ended, and it is written
+last.
 
 ## Finding format
 
@@ -321,6 +434,14 @@ talking, and the finding is dropped however true it is.
 Findings are recorded under a `### Findings` subsection beneath the ledger, the
 naming findings, or the verdict that produced them, numbered `F<N>` in the
 order first raised across the whole audit.
+
+A dispatched reviewer numbers its own findings from `F1` and knows nothing of
+this audit's high-water mark, so **every returned finding is renumbered on
+ingest** to continue this audit's sequence - a reviewer's `F2` arriving when the
+file already holds F1 and F2 is written down as `F3`. The round's `Findings:`
+line in `## Review log` records the numbers they ended up with; the `Returned:`
+paste in the same entry keeps the reviewer's original numbering, because that is
+what makes it a paste.
 
 ## Phase 2 - Domains
 
@@ -358,8 +479,8 @@ the Delta says so; there is nothing to agree or disagree with.
 Every column traces to a fact Phase 1 already measured. `Targets` and
 `Directories` are the cluster's own rows in the Repo map's Targets table.
 `Entry points`: for a cluster holding an executable target, that target
-(Targets table, Kind); for a library target, the headers it exports (Targets
-table, Headers exported). A `theirs only` row has no cluster behind it, so
+(Targets table, Kind); for a library target, the headers its directory holds
+(Targets table, Tracked headers). A `theirs only` row has no cluster behind it, so
 both columns stay empty and `Status` reads `unmapped`; an `agreed` or
 `code only` row always has one, so `Status` reads `mapped` here -
 `documented` is not reached until Phase 5.
@@ -385,15 +506,19 @@ ledger prompt and paste it whole into a fresh read-only subagent - opencode:
 the `Explore` agent; no dispatch available means the human runs it in a
 separate session and pastes the verdict back, never you reviewing your own
 ledger. Log the round under `## Review log`, and write every returned finding
-under `### Findings` in the block from `## Finding format` - gate 6 covers
-what happens to each one next.
+under `### Findings` beneath the ledger, in the block from `## Finding format`
+and renumbered into this audit's sequence - gate 6 covers what happens to each
+one next.
 
 `VERDICT: PASS` with nothing open closes the review and moves
 `Audit status:` to `domains-cleared`. `REVISE` and `BLOCK` - or an open
 `block`/`major` finding at either - get fixed in the ledger itself, never in
 code (gate 8), and logged as a new round. Gate 5's budget is three dispatches
 for this scope; the third round still open means stop and hand the ledger to
-the human as a decision, not a fourth dispatch.
+the human as a decision, not a fourth dispatch. Their decision is what they say
+after they have been shown the open findings by name - an instruction that
+predates the stop, this run's own "run Phase 0 through Phase 4" included, was
+given by someone who had not seen them and is not a decision about them.
 
 ## Phase 3 - Naming
 
@@ -405,17 +530,26 @@ below, the same way Phase 1's commands already did.
 Run, substituting the domain's own `Directories` column from the ledger:
 
 ```
-git grep -n 'class \|struct ' -- '<domain dirs>' | sed -E 's/.*(class|struct) ([A-Za-z_][A-Za-z0-9_]*).*/\2/' | sort | uniq -c | sort -rn
+git grep -n 'class \|struct ' -- '<domain dirs>' | sed -E 's/^([^:]+):[0-9]+:.*(class|struct) ([A-Za-z_][A-Za-z0-9_]*).*/\3 \1/' | cut -d' ' -f1 | sort | uniq -c | sort -rn
+git grep -n 'class \|struct ' -- '<domain dirs>' | sed -E 's/^([^:]+):[0-9]+:.*(class|struct) ([A-Za-z_][A-Za-z0-9_]*).*/\3 \1/' | sort -u
 git grep -c 'Manager\|Helper\|Utils\|Impl\|Base' -- '<domain dirs>'
 ```
 
-The first line counts how often each name follows `class`/`struct` inside the
-domain - a name that turns up more than once there is a synonym or a homonym
-candidate, not yet either. Comment lines and template parameters
-(`template <class T>`) surface in the same list as noise; read past them,
-never filter them with a third command. The second line reports, per file, how
-many `Manager`/`Helper`/`Utils`/`Impl`/`Base` hits it holds; no hit anywhere in
-a domain is a fact - a clean domain - not a failed command.
+The first two lines share one `git grep` and one `sed`, and differ only in the
+tail. The `sed` captures the declared name **and the file it was found in**,
+keeping `git grep -n`'s own path and dropping only the line number and the
+surrounding text. The first tail is the histogram: how often each name follows
+`class`/`struct` inside the domain - a name that turns up more than once there
+is a synonym or a homonym candidate, not yet either. The second tail is the
+same output collapsed to one row per name-and-file pair; a name appearing on
+two rows is a homonym candidate with both files already named, and this is the
+only place `Declared in` in a domain document has a source, so it is run and
+pasted even when the histogram alone would have answered the naming question.
+Comment lines and template parameters (`template <class T>`) surface in both
+lists as noise; read past them, never filter them with a further command. The
+last line reports, per file, how many `Manager`/`Helper`/`Utils`/`Impl`/`Base`
+hits it holds; no hit anywhere in a domain is a fact - a clean domain - not a
+failed command.
 
 Turn that output into three checks, each written as a finding in the block
 from `## Finding format`, dimension `naming`:
@@ -433,7 +567,7 @@ move to the next domain.
 ## Naming findings
 
 ### <domain>
-<the two commands' output for this domain>
+<this domain's histogram, its name-and-file list, and the bucket counts>
 
 Findings: F<n>, F<n>
 
@@ -483,6 +617,13 @@ or `overruled by human` finding does not count, whatever its severity:
 - `WORKABLE` - no `block`, at least one `major` confirmed and open
 - `READY` - no `block` and no `major` confirmed and open
 
+Findings this phase raises, and every finding its review below returns, live in
+a `### Findings` subsection at the end of `## Verdict`, below the `VERDICT:`
+line and above `## Refactor backlog` - the same shape Phase 3 uses under
+`## Naming findings`, in the block from `## Finding format`. That is the one
+place to look for them; nothing puts a finding block under a `## Verdict`
+dimension paragraph or under a backlog row.
+
 ## Refactor backlog
 
 Ranked, one row per task a human or `batya-planner` could pick up next:
@@ -508,20 +649,26 @@ verdict prompt and paste it whole into a fresh read-only subagent - opencode:
 the `Explore` agent; no dispatch available means the human runs it in a
 separate session and pastes the verdict back, never you reviewing your own
 verdict. Log the round under `## Review log`, and write every returned
-finding under `### Findings` in the block from `## Finding format`.
+finding under `## Verdict`'s `### Findings` subsection in the block from
+`## Finding format`, renumbered into this audit's sequence.
 
 `VERDICT: PASS` with nothing open closes the review and moves `Audit status:`
 to `verdict`. `REVISE` and `BLOCK` - or an open `block`/`major` finding at
 either - get fixed in the verdict or the backlog itself, never in code
 (gate 8), and logged as a new round. Gate 5's budget is three dispatches for
 this scope; the third round still open means stop and hand the verdict to the
-human as a decision, not a fourth dispatch.
+human as a decision, not a fourth dispatch. Their decision is what they say
+after they have been shown the open findings by name - an instruction that
+predates the stop, this run's own "run Phase 0 through Phase 4" included, was
+given by someone who had not seen them and is not a decision about them. Phase
+5 does not open on it, and neither does the backlog.
 
 ## Phase 5 - Docs
 
 Gate 1: refuse to write anything under `doc/` unless `Audit status:` already
-reads `verdict` or `documenting`. `preflight`, `mapped`, `domains-cleared`,
-`named` have not earned this phase yet. `complete` means every ledger row
+reads `verdict` or later. `preflight`, `mapped`, `domains-cleared`, and `named`
+have not earned this phase yet; `documenting` has, and is what every run of this
+phase after the first one reads. `complete` means every ledger row
 that can carry a document already carries one - say so and stop; there is
 nothing left to write.
 
@@ -536,8 +683,19 @@ Before writing a single byte, re-check the destination the `## Facts` line
 `doc target:` already named - what was true in Phase 0 can have changed:
 
 ```
-git check-ignore -v <doc dir>
+git check-ignore -v -- <doc dir>/
 ```
+
+**The trailing slash is the check, not punctuation on it, and `--no-index` must
+not be added.** On the first run the directory usually does not exist yet, and
+a directory-only pattern - `doc/`, the form everyone writes and the form this
+skill itself hands the human for `docs/audits/` - matches only a path git is
+told is a directory. Without the slash git cannot tell, so it reports a miss
+and this check waves the run straight into an invisible directory, every first
+time.
+`--no-index` looks like the fix and is the opposite one: it stops skipping
+tracked paths, so a `doc/` that is tracked and healthy comes back "ignored" the
+moment any matching pattern exists, and a good repo gets stopped for nothing.
 
 A hit means nobody outside this machine will ever see what gets written
 there - not a fresh clone, not CI, not a cloud agent, the exact blind spot
@@ -546,8 +704,11 @@ careful work is worse than leaving it empty, because empty is honest and a
 careful-looking document nobody receives is not. Say that, in character,
 name the ignoring line `check-ignore` printed, and put the decision to the
 human - untrack it, or point this phase at a tracked directory - then stop.
-Write nothing under `doc/` until they answer. A miss (no output, non-zero
-exit) is the fact that clears this check; carry on.
+Write nothing under `doc/` until they answer, and their answer is what they say
+after being shown that line: an instruction given before this check ran, "write
+all the domain docs today" included, decided nothing about a directory nobody
+had told them was ignored. A miss (no output, non-zero exit) with the slash in
+place is the fact that clears this check; carry on.
 
 Whatever the result, write it into `## Facts`, on the line right after
 `doc target:`:
@@ -556,14 +717,22 @@ Whatever the result, write it into `## Facts`, on the line right after
 doc target check: tracked <date> | ignored <date>: <the line check-ignore printed>
 ```
 
-This line is the check's only trace, and it is what makes the ordering
-provable rather than remembered: it carries the command's actual output, so
-it cannot be filled in without having run the command for real, and its
-edit lands in the same edit as this run's first write under `doc/` (Order,
-below) - never a separate edit before it, and never one added afterward to
-match what was already written. A domain document written without a
-same-edit `doc target check:` update was not preceded by this check,
-whatever the session's own account of it claims.
+This line is the check's only trace. The two branches are not equally strong,
+and pretending otherwise would be the same overclaim this skill audits other
+people for. `ignored <date>: <line>` carries `check-ignore`'s own output - the
+ignoring file, its line number, the pattern - and cannot be written without
+having run the command for real. `tracked <date>` carries nothing of the kind:
+a miss prints nothing, so that branch is a date and a word, and it is a
+**recorded assertion that the check was run and came back clean, not evidence
+that it was**. Nothing here makes a miss provable, and nothing should - there
+is no command worth the cost that would.
+
+What carries the weight instead is the ordering: this line's edit lands in the
+same edit as this run's first write under `doc/` (Order, below) - never a
+separate edit before it, and never one added afterward to match what was
+already written. A domain document written without a same-edit
+`doc target check:` update was not preceded by this check, whatever the
+session's own account of it claims.
 
 ### Order
 
@@ -599,11 +768,15 @@ the one.
    - **`Status: mapped`** - this is the domain to document this run. Write
      `doc/domains/<name>.md` from [`doc-template.md`](doc-template.md)'s
      domain shape, filled only from what the state file already measured
-     for this domain's cluster: the Repo map's Targets / Directories /
-     Entry points rows for "Where it lives", the Naming findings for
-     "Entities", the Repo map's Cross-boundary includes, Blast radius, and
-     Target links rows for "How it talks to other domains", and the
-     Refactor backlog rows tagged with this domain for "Known rot".
+     for this domain's cluster: the ledger's Targets / Directories /
+     Entry points columns for "Where it lives", this domain's Phase 3
+     name-and-file list for "Entities", the Repo map's Cross-boundary
+     includes, Blast radius, and Target links rows for "How it talks to other
+     domains", and the Refactor backlog rows tagged with this domain plus the
+     findings its `## Naming findings` entry points at for "Known rot".
+     Nothing here goes back to the source tree: this phase assembles what
+     earlier phases measured, and a fact it cannot find in the state file is a
+     fact the document does not get.
      `doc-template.md` says, section by section, what to do when a section
      has nothing to fill it from - never leave a heading with nothing under
      it. Add the domain's entry to `doc/index.md` in the same edit, under
@@ -625,7 +798,21 @@ Dispatched: <agent type>
 VERDICT: <token>
 Findings: F<n>, F<n>
 Dispositions: F<n> confirmed, F<n> dropped: <reason>
+
+Returned:
+<the reviewer's whole FINDINGS block, pasted exactly as it came back; for a
+clean PASS with no findings, its own `VERDICT:` line as it was returned>
 ```
+
+**`Returned:` is not optional and is not a summary.** Everything above it is
+text this session could have typed without dispatching anything:
+`Round 1 - ledger - PASS` with no findings is byte-identical whether a reviewer
+produced it or nobody was ever asked. The reviewer's own returned text is the
+one part of the entry that is not, which makes it the whole evidentiary value
+of gate 4 - the gate whose entire purpose is that this audit cannot mark its own
+homework, and the cheapest one in the file to fake. Paste it whole and unedited:
+the reviewer's `F<N>` numbering stays as it arrived here, and the audit's own
+renumbering shows up on the `Findings:` line above, which is what maps the two.
 
 Append-only, matching the rule already stated after the gates: a corrected
 disposition is a new round, never an edit to an old one.

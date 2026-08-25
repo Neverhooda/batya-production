@@ -51,7 +51,9 @@ VERDICT: BLOCK | REVISE | PASS
 The verdict is the severity of your worst finding and nothing else. It is
 not a grade for the audit's effort, and it is not withheld to make a point.
 
-FINDINGS (at most 7, most severe first; omit if none):
+FINDINGS (at most 7, most severe first; omit if none). Number yours `F1`, `F2`,
+... from one - the audit renumbers them into its own sequence on ingest, so do
+not try to guess where its count already stands:
 
 ### F<N> - <navigability | boundaries | naming | context | feedback | surface> - <block | major | minor>
 Task: <a change someone would plausibly ask for>
@@ -102,6 +104,13 @@ Check:
 4. Does any `## Refactor backlog` row lack `Observable afterwards`, or state
    it as "it's broken, figure it out" rather than what must work afterward
    and how that will be seen?
+5. Is any finding's `Disposition: dropped: <reason>` unsupported by what the
+   state file itself shows - a reason nothing in `## Facts`, `## Repo map`,
+   `## Domain ledger`, `## Naming findings`, or `## Review log` bears out?
+   `VERDICT` counts only `confirmed` findings, so one `block` dropped on free
+   text nobody checked is the whole difference between `HOSTILE` and `READY`,
+   and the reason is the only thing standing where evidence should be. Read
+   every `dropped:` line, `minor` ones included.
 
 Output format, exactly:
 
@@ -116,7 +125,9 @@ VERDICT: BLOCK | REVISE | PASS
 The verdict is the severity of your worst finding and nothing else. It is
 not a grade for the audit's effort, and it is not withheld to make a point.
 
-FINDINGS (at most 7, most severe first; omit if none):
+FINDINGS (at most 7, most severe first; omit if none). Number yours `F1`, `F2`,
+... from one - the audit renumbers them into its own sequence on ingest, so do
+not try to guess where its count already stands:
 
 ### F<N> - <navigability | boundaries | naming | context | feedback | surface> - <block | major | minor>
 Task: <a change someone would plausibly ask for>
