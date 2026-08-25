@@ -142,6 +142,19 @@ otherwise-ordinary directory - a bundled library, a generated protocol file.
 Name those paths in `vendored/generated` and say how a later search excludes
 them, for example a path this audit adds to every `git grep` from here on.
 
+Build system: the required CMake version comes from the root file, never from
+memory of what "modern CMake" implies.
+
+```
+grep -n cmake_minimum_required CMakeLists.txt
+cat CMakePresets.json 2>/dev/null | grep -n generator
+```
+
+The second line answers "generator if pinned": a hit names the pin, no hit -
+whether because there is no `CMakePresets.json` or because it has no
+`generator` key - means `not pinned`, and that absence is itself the fact to
+write down, not a command that failed.
+
 Test framework: read the CMakeLists files just listed rather than guess it
 from a directory name.
 
@@ -211,23 +224,28 @@ git grep -h '#include "' -- '*.cpp' '*.cc' '*.h' '*.hpp' | sort | uniq -c | sort
 ```
 
 Blast radius for a header the include histogram surfaced - the bare name
-substituted for `NAME`, so both include forms are caught:
+substituted for `NAME`, so both include forms are caught - and the same
+includer list broken down by directory in one more pipe:
 
 ```
 git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | wc -l
+git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | xargs -n1 dirname | sort | uniq -c
 ```
 
-Build the three tables from what those four commands returned, never from
+Build the three tables from what those five commands returned, never from
 memory of the tree:
 
 - **Targets** - one row per `add_library` / `add_executable` hit: the target
   name, its kind, its directory, and the headers under that directory another
   target could plausibly include.
-- **Cross-boundary includes** - for each widely-included header, bucket its
-  includers by directory against the directory the header is declared in; a
-  count per directory pair, not per file.
+- **Cross-boundary includes** - the `dirname | sort | uniq -c` line already is
+  the per-directory breakdown for that header; look up the header's own
+  directory (a `git ls-files` for its name), drop the row where that matches
+  the includer directory - same-directory includes are not cross-boundary -
+  and the rest is the table, one row per remaining directory with its count.
+  No manual bucketing beyond that lookup and that one drop.
 - **Blast radius** - the include histogram's top entries, each carrying the
-  count the `NAME`-substituted command actually returned for it.
+  count the `NAME`-substituted `wc -l` actually returned for it.
 
 A count reached by widening a partial list by hand carries a `~`; a count a
 command returned outright does not.
