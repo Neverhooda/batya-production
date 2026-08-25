@@ -19,21 +19,18 @@ description of it. Anything referencing something that is not there is BLOCK.
 Check at either scope:
 1. Do the named files, targets, and test targets exist? Does the build command name
    a real target and the test command a regex matching real test names?
-2. Would each driver test actually fail before the change, on an assertion rather
-   than a compile error? Say which. Is there at least one driver, and does every
-   listed guard already pass?
-3. Ownership and lifetime at every new boundary: who owns it, who can outlive it,
+2. Ownership and lifetime at every new boundary: who owns it, who can outlive it,
    what happens on the error path. Name a concrete dangling or double-free path if
    one exists.
-4. Exception safety: on a throw mid-operation, is the object still valid, anything
+3. Exception safety: on a throw mid-operation, is the object still valid, anything
    leaked or half-initialised? Are noexcept claims true? Is cleanup RAII?
-5. Header cost and ODR: anything in a header that forces a wide rebuild or breaks
+4. Header cost and ODR: anything in a header that forces a wide rebuild or breaks
    ABI when it could live in the .cpp; non-inline definitions in headers; new heavy
    includes.
-6. Concurrency: shared mutable state without stated synchronisation, lock order,
+5. Concurrency: shared mutable state without stated synchronisation, lock order,
    what is assumed about the caller's thread.
-7. What is missing entirely - a migration, a call site, a build file, a config.
-8. Any command anywhere in the plan that would not run as written - a dropped
+6. What is missing entirely - a migration, a call site, a build file, a config.
+7. Any command anywhere in the plan that would not run as written - a dropped
    `--preset`, a `-R` filter matching no registered test, a configure preset name
    used where a test preset is required. That is BLOCK: the plan is recording
    commands nobody executed. The same failure in the other direction: a third-party
@@ -42,16 +39,21 @@ Check at either scope:
    claim is sourced, not whether it is correct - you read the tree, you do not go
    fetch documentation to referee it.
 
-Additionally, when SCOPE is the whole plan:
-9. Step order: does any step depend on something a later step creates?
-10. Does any step exceed ~150 changed lines or touch unrelated subsystems?
-11. Is the plan still inside its own budget - 3 to 8 steps, two pages, each step
+Additionally, when SCOPE is the whole plan (drivers are deliberately absent from
+this list - they are written per step in Phase 3, so a plan naming none is on
+schedule, not defective):
+8. Step order: does any step depend on something a later step creates?
+9. Does any step exceed ~150 changed lines or touch unrelated subsystems?
+10. Is the plan still inside its own budget - 3 to 8 steps, two pages, each step
     ending in a command that passes? A plan that outgrew the budget while being
     reviewed is a design that is not settled, and that is the finding to report
     rather than another page of detail. Severity `major`, and name what to cut or
     where to split.
 
 Additionally, when SCOPE is a step detail:
+11. Would each driver test actually fail before the change, on an assertion rather
+    than a compile error? Say which. Is there at least one driver, and does every
+    listed guard already pass?
 12. Copy vs move: accidental deep copy in a hot path, use of a moved-from object,
     self-move or self-assignment hazard.
 13. Undefined behaviour: signed overflow, out-of-bounds index, strict aliasing,

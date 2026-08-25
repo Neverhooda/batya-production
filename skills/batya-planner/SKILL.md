@@ -96,10 +96,10 @@ in character, naming what you need instead.
 11. **A task stated as "it's broken, figure it out" is refused** until the human
     says what must work afterwards and how that will be observed. Without it there
     is no plan and no test. Do not refuse because the task is boring.
-12. **A scope is clear when no `block` is open and every `major` has a written
-    disposition.** Only Phase 2 and the resume rule write `Plan status: cleared`,
-    and only off a logged round that cleared it - on resume, that round must be the
-    last entry in `## Review log`.
+12. **A scope is clear when no `block` is open and every finding has a written
+    disposition** - `minor` included, per gate 4. Only Phase 2 and the resume rule
+    write `Plan status: cleared`, and only off a logged round that cleared it - on
+    resume, that round must be the last entry in `## Review log`.
 13. **`## Review log` is append-only.** Never rewrite an entry.
 14. **The review prompt is pasted verbatim.** Never summarised, never rewritten to
     save tokens.
@@ -353,10 +353,11 @@ In this order - gate 16.
    every guard must pass. A compile error means the test is not written yet. A
    driver that passes means the test is wrong, not the plan. Append the red block
    below before writing a line of implementation.
-3. Implement, touching only the files the step lists. A file that is not in the
-   step means the step was wrong: stop, set the step back to `detailed`, and go to
-   Phase 3. Re-detailed is unreviewed - Phase 2 again, at a dispatch from that
-   step's budget.
+3. Implement, touching only the files the step lists, and set the status to
+   `implemented` when that writing is done. A file that is not in the step means
+   the step was wrong: stop, set the step back to `detailed`, and go to Phase 3.
+   Re-detailed is unreviewed - Phase 2 again, at a dispatch from that step's
+   budget.
 4. Build. Any warning naming a file this step touched is a failure, whether or not
    the total moved - an incremental build does not re-emit warnings for untouched
    TUs, so counts do not compare against the Phase 0 baseline.
@@ -372,7 +373,10 @@ Appended at step 2, before any implementation exists:
 guards: <N> passed
 ```
 
-Then status `implemented`. Only after this block goes in, `verified`:
+The status is still `reviewed` while that block goes in - it is written before any
+implementation exists, so it cannot mean the step is implemented. `implemented`
+comes at the end of step 3 above; then steps 4 to 7 run, and only off output they
+printed, `verified`:
 
 ```markdown
 ### Step <N> verified
@@ -404,6 +408,11 @@ never written down is gone with the session.
 Whether they run it is not a gate and not your business. Go back to Phase 3 for the
 next step either way.
 
+No next step ends the plan, in this session exactly as in a resumed one: collect
+the `commit:` line from every verified step, check each message against `git log`,
+report which are in the history and which are still outstanding, and stop. Do not
+open new work inside a finished plan - the next task is a new plan, from Phase 0.
+
 ## Resuming in a fresh session
 
 Read the plan file. **Check `Plan status` first.**
@@ -411,11 +420,15 @@ Read the plan file. **Check `Plan status` first.**
 | `Plan status` | Do |
 |---|---|
 | `cleared` | Continue to the step table below. |
-| anything else, or no such line at all | Read `## Review log`. A logged round that already cleared the scope - no `block` open, every `major` dispositioned - means the session died before the header was written: write `Plan status: cleared` from that log and continue. Otherwise Phase 2 at whole-plan scope. |
+| anything else, or no such line at all | Read `## Review log`. A logged round that already cleared the scope - no `block` open, every finding dispositioned - means the session died before the header was written: write `Plan status: cleared` from that log and continue. Otherwise Phase 2 at whole-plan scope. |
 
-Reconstruct the gate 7 budget from the same log: count the
-`### Plan review, round <N>` headings, restarting at 1 after a
-`### Plan rewritten - new review scope` divider.
+Reconstruct the gate 7 budget from the same log before dispatching anything. For
+the plan, count the `### Plan review, round <N>` headings, restarting at 1 after a
+`### Plan rewritten - new review scope` divider. For a step, count that step's
+`### Step <N> review, round <M>` headings - a step carries its own budget across
+sessions exactly as the plan does, and a count already at three is a spent budget
+with gate 7's two exits as the only way out of it. Neither count includes an
+unparseable return; its heading says `not counted` and means it.
 
 Then take the first step that is not `verified`:
 

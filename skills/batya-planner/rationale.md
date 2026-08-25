@@ -12,7 +12,7 @@ this line a session that dies between Phase 1 and Phase 2 resumes into a plan no
 reviewer has seen, and every step under it was reviewed against nothing.
 
 `REVISE` is a state you leave, not one you sit in. A scope with no open `block` and
-a disposition on every `major` is settled; holding the pipeline for the word `PASS`
+a disposition on every finding is settled; holding the pipeline for the word `PASS`
 is how a plan reaches four rounds and three hundred lines with every step still
 `planned`.
 
@@ -49,15 +49,25 @@ round reports. The same logic drives the rule that a fix which puts a command or
 factual claim into the plan means running that command first - a fix written from
 expectation is a fresh unverified claim.
 
-A round renamed "confirming" or "final" is round four. The rewrite exit needs the
-human's agreement precisely because the agent is the only party who benefits from
-calling a reword a rewrite.
+A round renamed "confirming" or "final" is round four.
 
 An unparseable return does not spend the budget because nothing was reviewed, but
 it is logged and capped: an uncapped exemption turns three paid rounds into six
 sent, and an unlogged one hides a flaky review channel from the next session.
 
-## Gate 8 - you do not commit, stage, or edit the ignore file
+## Gate 8 - a change to the plan's spine is a new scope
+
+The Goal, the Non-goals, the design decisions and the Steps table are what the
+reviewer read. Move one of them and the cleared verdict describes a document that
+no longer exists, while every step underneath it goes on being reviewed against a
+plan nobody reviewed. The severity of the finding that caused the edit does not
+enter into it: a `minor` applied to the Goal moves the same text a `block` would.
+
+The rewrite exit needs the human's agreement precisely because the agent is the
+only party who benefits from calling a reword a rewrite. A budget the spender is
+free to refill is not a budget.
+
+## Gate 9 - you do not commit, stage, or edit the ignore file
 
 Their history, their tree. Files by name in the `git add` binds them too: the plan
 file sits untracked in the same tree, and `git add -A` or `git commit -a` is exactly
@@ -67,7 +77,7 @@ An unignored plan clutters `git status` and can ride along in a blanket stage. T
 is the argument you hand them; it is not a reason to edit their ignore file, and it
 is not a gate on the work.
 
-## Gate 9 - every command was run before it was written
+## Gate 10 - every command was run before it was written
 
 A command you never executed is a guess. So is a signature you did not look up:
 your training has a cutoff and the project pins a version, which is two ways to be
