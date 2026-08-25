@@ -212,6 +212,8 @@ vendored/generated: <paths, and how a search skips them>
 agent surface:  <path - tracked or ignored (and by which line) - claimed
                 command verified: pass / fail / none claimed>
 doc target:     <doc/ | docs/ - the existing one, or doc/ to be created>
+doc target check: <not yet run - Phase 5 fills this the first time it
+                   re-verifies the check below>
 human's domains: <verbatim, in their words, or "asked, not answered">
 ```
 
@@ -237,7 +239,23 @@ git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | w
 git grep -l '#include.*[<"]NAME[>"]' -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' | xargs -n1 dirname | sort | uniq -c
 ```
 
-Build the three tables from what those five commands returned, never from
+Target links - the build graph's own edges, which couple two targets
+without either sharing a single `#include`. A `target_link_libraries` call
+can run across several lines, so flatten each `CMakeLists.txt` first and the
+call comes out on one line regardless of how it was written:
+
+```
+git ls-files '*/CMakeLists.txt' 'CMakeLists.txt' | xargs -I{} sh -c 'tr "\n" " " < "{}" | grep -oE "target_link_libraries\([^)]*\)"'
+```
+
+One line per call: the target being linked, then everything it links,
+visibility keyword (`PUBLIC` / `PRIVATE` / `INTERFACE`) included in the raw
+text and dropped when the table is built. A name this repo also declares as
+a target, an imported target such as `OpenSSL::SSL`, and a bare flag such as
+`${CMAKE_DL_LIBS}` all list the same way in what is left - gate 7 forbids
+sorting them by guesswork about which is which.
+
+Build the four tables from what those six commands returned, never from
 memory of the tree:
 
 - **Targets** - one row per `add_library` / `add_executable` hit: the target
@@ -251,6 +269,10 @@ memory of the tree:
   No manual bucketing beyond that lookup and that one drop.
 - **Blast radius** - the include histogram's top entries, each carrying the
   count the `NAME`-substituted `wc -l` actually returned for it.
+- **Target links** - one row per `target_link_libraries` call the command
+  above returned: the target name, its own directory (looked up in the
+  Targets table), and the libraries it names with the visibility keyword
+  dropped, in the order the call listed them.
 
 A count reached by widening a partial list by hand carries a `~`; a count a
 command returned outright does not.
@@ -269,6 +291,10 @@ command returned outright does not.
 ### Blast radius
 | Header | Includers (count) |
 |---|---|
+
+### Target links
+| Target | Directory | Links |
+|---|---|---|
 ```
 
 ## Finding format
@@ -523,6 +549,22 @@ human - untrack it, or point this phase at a tracked directory - then stop.
 Write nothing under `doc/` until they answer. A miss (no output, non-zero
 exit) is the fact that clears this check; carry on.
 
+Whatever the result, write it into `## Facts`, on the line right after
+`doc target:`:
+
+```markdown
+doc target check: tracked <date> | ignored <date>: <the line check-ignore printed>
+```
+
+This line is the check's only trace, and it is what makes the ordering
+provable rather than remembered: it carries the command's actual output, so
+it cannot be filled in without having run the command for real, and its
+edit lands in the same edit as this run's first write under `doc/` (Order,
+below) - never a separate edit before it, and never one added afterward to
+match what was already written. A domain document written without a
+same-edit `doc target check:` update was not preceded by this check,
+whatever the session's own account of it claims.
+
 ### Order
 
 On first entry (`Audit status: verdict`), the first write this phase makes
@@ -530,7 +572,11 @@ On first entry (`Audit status: verdict`), the first write this phase makes
 change to `documenting` in the same edit, not a separate one before it: a
 session that dies between "flip the status" and "write the file" must not
 leave the state file claiming progress that isn't on disk. On a later run
-it is `documenting` already and this does not apply.
+it is `documenting` already and this does not apply. Every entry, first or
+later, that same first write also carries the `doc target check:` update
+above, from this run's own `check-ignore`; a first-entry run therefore
+carries two updates to the state file in that one edit, a later run just
+the one.
 
 1. `doc/CLAUDE.md` does not exist: write it verbatim from
    [`doc-template.md`](doc-template.md)'s authoring rules. It exists
@@ -555,16 +601,16 @@ it is `documenting` already and this does not apply.
      domain shape, filled only from what the state file already measured
      for this domain's cluster: the Repo map's Targets / Directories /
      Entry points rows for "Where it lives", the Naming findings for
-     "Entities", the Repo map's Cross-boundary includes and Blast radius
-     rows for "How it talks to other domains", and the Refactor backlog
-     rows tagged with this domain for "Known rot". `doc-template.md` says,
-     section by section, what to do when a section has nothing to fill it
-     from - never leave a heading with nothing under it. Add the domain's
-     entry to `doc/index.md` in the same edit, under the group heading that
-     fits it - `doc-template.md` says how. Set this ledger row's `Status`
-     to `documented`. Stop and report: which domain, which files changed,
-     and which ledger rows, if any, were skipped this run as permanently
-     `unmapped`.
+     "Entities", the Repo map's Cross-boundary includes, Blast radius, and
+     Target links rows for "How it talks to other domains", and the
+     Refactor backlog rows tagged with this domain for "Known rot".
+     `doc-template.md` says, section by section, what to do when a section
+     has nothing to fill it from - never leave a heading with nothing under
+     it. Add the domain's entry to `doc/index.md` in the same edit, under
+     the group heading that fits it - `doc-template.md` says how. Set this
+     ledger row's `Status` to `documented`. Stop and report: which domain,
+     which files changed, and which ledger rows, if any, were skipped this
+     run as permanently `unmapped`.
    - **No row left except `documented` and permanently `unmapped`**: every
      domain that could carry a document already does. Set
      `Audit status: complete` and report that instead of a document.

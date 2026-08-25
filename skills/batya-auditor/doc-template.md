@@ -161,7 +161,8 @@ entry points: <the files someone changing this domain opens first>
 
 ## How it talks to other domains
 
-<the headers it exports, who includes them, what it includes from others>
+<the headers it exports, who includes them, what it includes from others;
+the targets it links, and the targets that link it>
 
 ## Invariants
 
@@ -201,12 +202,17 @@ above - it is hand-maintained per `doc/CLAUDE.md`, not a fixed list.
   about - the heading above the table already earned its place from the
   grep hit.
 - **How it talks to other domains** exists only when the Repo map's
-  Cross-boundary includes or Blast radius tables show at least one row
-  with this domain's directory on either side. Zero such rows is a real,
-  evidence-backed fact - the domain is a leaf - but the only sentence
-  available to say it is "this domain talks to nothing," which is exactly
-  the filler gate 10 forbids. Cut the section instead; the same fact is
-  already visible to anyone reading the Repo map itself.
+  Cross-boundary includes, Blast radius, or Target links tables show at
+  least one row touching this domain - its directory on either side of an
+  include row, or one of its own targets naming another domain's target
+  (or being named by one) in a Target links row. Coupling through either
+  kind counts; a domain with link rows but no include rows, or the reverse,
+  still gets the section, built from whichever kind it has. Zero rows
+  across all three tables is a real, evidence-backed fact - the domain is a
+  leaf - but the only sentence available to say it is "this domain talks to
+  nothing," which is exactly the filler gate 10 forbids. Cut the section
+  instead; the same fact is already visible to anyone reading the Repo map
+  itself.
 - **Invariants** exists only when something already on the page names a
   rule the code enforces - a Naming or Verdict finding, a Repo map fact,
   something the domain ledger's Notes already said. Nothing upstream of
