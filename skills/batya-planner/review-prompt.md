@@ -10,6 +10,9 @@ it is copied verbatim into a plan file that has to stay clean and English. Russi
 profanity included, is for STRONGEST OBJECTION and for anything you say around the
 block.
 
+The dispatch that pointed you at this file carries the three lines below, filled
+in. Those are your values; the placeholders here only say what each one means.
+
 SCOPE: <whole plan | step <N> detail>
 Repository root: <absolute path>
 Read: <plan file>[, section "Step <N> detail"] plus the files it names, as they

@@ -96,9 +96,10 @@ profanity never reaches your commits.
 
 For any C++ change (CMake + GoogleTest) needing more than one or two edits. Plans
 are worthless if nobody checks them and nobody can resume them, so this one makes
-the checking mechanical and the state durable: a plan reviewed by a fresh subagent,
-one step detailed at a time, a failing test before any code, and every verdict and
-status written to a single plan file that survives a dead session.
+the checking mechanical and the state durable: a plan reviewed once by a fresh
+subagent, with your go closing whatever that round left open, one step detailed at
+a time, a failing test before any code, and every verdict and status written to a
+single plan file that survives a dead session.
 
 Gates that don't open on request: no code before `Plan status: cleared`, `BLOCK` stops the
 pipeline, every finding gets a written disposition, and review never runs inline —

@@ -37,35 +37,36 @@ than merely being recommended.
 Review by the author is not review. An agent that just wrote a plan cannot see the
 assumption it wrote the plan from.
 
-## Gate 7 - three dispatches per scope
+## Gate 7 - one dispatch per scope, three at the most
 
-A scope that will not clear in three rounds is not a scope with a wording problem;
-it is a design that is not settled. The budget converts an unbounded loop into a
-decision the human has to make.
+One round finds what a fresh reader finds. A second round mostly finds what the
+first round's fixes moved, and a third finds what the second moved: each round
+manufactures the defect the next one reports. The loop has no natural end, so the
+end is a person. The agent never earns a dispatch for itself because the agent is
+the only party that benefits from another round - it is cheaper to ask again than
+to be wrong in front of the human.
 
-Applying a finding spends the budget rather than extending it, because the opposite
-rule is a perpetual motion machine: each round manufactures the defect the next
-round reports. The same logic drives the rule that a fix which puts a command or a
-factual claim into the plan means running that command first - a fix written from
-expectation is a fresh unverified claim.
+Applying a `block` used to force a re-run. It does not, because gate 10 already
+covers the part of a fix that can be wrong in a way a reviewer would catch: a
+command or a factual claim goes into the plan only after it was run. The rest of
+a fix is text the human reads in the report.
 
-A round renamed "confirming" or "final" is round four.
+An unparseable return does not count because nothing was reviewed, but it is
+logged and capped: an uncapped exemption turns one paid round into two sent, and
+an unlogged one hides a flaky review channel from the next session.
 
-An unparseable return does not spend the budget because nothing was reviewed, but
-it is logged and capped: an uncapped exemption turns three paid rounds into six
-sent, and an unlogged one hides a flaky review channel from the next session.
+## Gate 8 - the human's go closes the scope
 
-## Gate 8 - a change to the plan's spine is a new scope
+The pipeline exists to put decisions in front of the human with evidence. Once
+they have decided, a round that re-raises the same finding is not review; it is
+the agent relitigating a call that was not its to make. The log keeps their words
+next to the finding so a later session can see who decided and why, and copies
+the disposition instead of reopening it.
 
-The Goal, the Non-goals, the design decisions and the Steps table are what the
-reviewer read. Move one of them and the cleared verdict describes a document that
-no longer exists, while every step underneath it goes on being reviewed against a
-plan nobody reviewed. The severity of the finding that caused the edit does not
-enter into it: a `minor` applied to the Goal moves the same text a `block` would.
-
-The rewrite exit needs the human's agreement precisely because the agent is the
-only party who benefits from calling a reword a rewrite. A budget the spender is
-free to refill is not a budget.
+What can still reopen a cleared plan is text the reviewer never read and no
+finding asked for: a Goal, Non-goal, or step the agent changed on its own. That
+goes in front of the human because they cleared a document that no longer exists,
+and the choice between a re-review and a go is theirs, not a rule's.
 
 ## Gate 9 - you do not commit, stage, or edit the ignore file
 
@@ -98,12 +99,6 @@ State on disk and nowhere else means a fresh clone, a second machine, or one
 to survive any of those, copy it outside the working tree first.
 
 Append-only review log: history you can rewrite is history that agrees with you.
-
-## Why the warning baseline is a number
-
-On a codebase that already warns, "0 warnings" is a lie and "0 new warnings"
-without a number is unfalsifiable. Per target, because a library target and a test
-target do not share a count.
 
 ## Why blast radius is a command
 
